@@ -53,15 +53,21 @@
       padding: 10px;
       z-index: 1000;
     }
-    .btn-sm-custom {
-      font-size: 0.8rem;
+    .top-buttons {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .top-buttons button {
+      flex: 1 1 auto;
+      font-size: 0.85rem;
       padding: 4px 8px;
     }
-    .input-group {
-      gap: 0.5rem;
-      flex-wrap: wrap;
+    .form-select {
+      font-size: 0.85rem;
     }
-</style>
+  </style>
 </head>
 <body>
   <header>
@@ -69,21 +75,22 @@
   </header>
 
   <div class="container mt-3">
-    <div class="mb-3">
-      <input type="text" id="searchInput" class="form-control" placeholder="Ej: Juan 3:16 o una palabra clave...">
+    <div class="top-buttons">
+      <input type="text" id="searchInput" class="form-control" placeholder="Ej: Juan 3:16 o palabra clave...">
+      <button class="btn btn-primary" onclick="buscarVersiculo()">Buscar</button>
+      <button class="btn btn-success" onclick="restaurarVersiculo()">Restaurar versículo</button>
+      <button class="btn btn-warning" onclick="reemplazoGlobal()">Reemplazo global</button>
     </div>
+
     <div class="row mb-3">
-      <div class="col">
+      <div class="col-6">
         <select id="libroSelect" class="form-select"></select>
       </div>
-      <div class="col">
-        <select id="capituloSelect" class="form-select">
-          <option value="">Capítulo</option>
-        </select>
+      <div class="col-6">
+        <select id="capituloSelect" class="form-select"></select>
       </div>
     </div>
-    <button class="btn btn-primary w-100 mb-3" onclick="buscarVersiculo()">Buscar</button>
-    <button class="btn btn-danger w-100 mb-3" onclick="restaurarVersiculo()">Restaurar versículo</button>
+<div id="topBar" class="d-flex gap-2 flex-wrap mb-3"></div>
 
     <div id="resultados" class="bg-white p-3 rounded shadow-sm"></div>
   </div>
