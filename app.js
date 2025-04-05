@@ -97,7 +97,13 @@ function buscarVersiculo() {
     const textoDesdeStorage = localGlobal ? JSON.parse(localGlobal) : [];
     textoOriginal = Array.isArray(textoDesdeStorage) ? textoDesdeStorage : [];
     if (localCap) {
-      textoOriginal[capituloActual] = JSON.parse(localCap);
+      const obj = JSON.parse(localCap);
+      const nuevoCapitulo = [];
+      Object.entries(obj).forEach(([k, v]) => {
+        const index = parseInt(k, 10) - 1;
+        nuevoCapitulo[index] = v;
+      });
+      textoOriginal[capituloActual] = nuevoCapitulo;
     }
     mostrarVersiculo();
     return;
