@@ -158,17 +158,25 @@ function mostrarBarraGuardar() {
   document.getElementById("saveCancelBar").style.display = "flex";
 }
 
+// CORREGIDA función guardarCambios()
 function guardarCambios() {
   const versos = document.querySelectorAll("#resultados p");
+  if (!textoEditado[capituloActual]) textoEditado[capituloActual] = {};
+
   versos.forEach(p => {
     const numero = p.querySelector("b").innerText;
+    const idx = parseInt(numero) - 1;
     const palabras = Array.from(p.querySelectorAll(".verse-word")).map(span => span.innerText.trim());
-    if (!textoEditado[capituloActual]) textoEditado[capituloActual] = {};
-    textoEditado[capituloActual][numero] = palabras.join(" ");
+    const textoFinal = palabras.join(" ");
+
+    textoEditado[capituloActual][numero] = textoFinal;
+    if (!textoOriginal[capituloActual]) textoOriginal[capituloActual] = [];
+    textoOriginal[capituloActual][idx] = textoFinal;
   });
 
   const clave = `${libroActual}_${capituloActual}`;
   localStorage.setItem(clave, JSON.stringify(textoEditado[capituloActual]));
+
   document.getElementById("saveCancelBar").style.display = "none";
   alert("Cambios guardados localmente");
 }
