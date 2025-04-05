@@ -199,3 +199,48 @@ function reemplazoGlobal() {
 
   alert(`Reemplazo global de "${desde}" por "${hasta}" completado en todos los libros.`);
 }
+
+// Buscar con tecla Enter
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("searchInput").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+      buscarVersiculo();
+    }
+  });
+});
+
+function restaurarVersiculo() {
+  const cita = prompt("¿Qué versículo deseas restaurar? (Ej: Juan 3:16)");
+  const match = cita.match(/([\wáéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)/);
+
+  if (!match) {
+    alert("Formato inválido. Usa: Juan 3:16");
+    return;
+  }
+
+  let libroEntrada = match[1];
+  let cap = parseInt(match[2], 10) - 1;
+  let verso = parseInt(match[3], 10) - 1;
+  const libro = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
+
+  const claveCap = `${libro}_${cap}`;
+  const local = localStorage.getItem(claveCap);
+  if (!local) {
+    alert("No hay edición guardada para ese versículo.");
+    return;
+  }
+
+  const data = JSON.parse(local);
+  delete data[verso + 1];
+  if (Object.keys(data).length === 0) {
+    localStorage.removeItem(claveCap);
+  } else {
+    localStorage.setItem(claveCap, JSON.stringify(data));
+  }
+
+  if (libro === libroActual && cap === capituloActual) {
+    buscarVersiculo(); // recargar la vista si es el capítulo actual
+  }
+
+  alert("Versículo restaurado.");
+}
