@@ -87,11 +87,17 @@ function buscarVersiculo() {
 
   libroActual = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
 
-  const claveLocal = `global_${libroActual}`;
-  const localData = localStorage.getItem(claveLocal);
+  const claveCapitulo = `${libroActual}_${capituloActual}`;
+  const claveGlobal = `global_${libroActual}`;
 
-  if (localData) {
-    textoOriginal = JSON.parse(localData);
+  const localCap = localStorage.getItem(claveCapitulo);
+  const localGlobal = localStorage.getItem(claveGlobal);
+
+  if (localCap || localGlobal) {
+    textoOriginal = localGlobal ? JSON.parse(localGlobal) : [];
+    if (localCap) {
+      textoOriginal[capituloActual] = JSON.parse(localCap);
+    }
     mostrarVersiculo();
     return;
   }
