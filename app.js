@@ -87,24 +87,11 @@ function buscarVersiculo() {
 
   libroActual = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
 
-  const claveCapitulo = `${libroActual}_${capituloActual}`;
-  const claveGlobal = `global_${libroActual}`;
+  const claveLocal = `global_${libroActual}`;
+  const localData = localStorage.getItem(claveLocal);
 
-  const localCap = localStorage.getItem(claveCapitulo);
-  const localGlobal = localStorage.getItem(claveGlobal);
-
-  if (localCap || localGlobal) {
-    const textoDesdeStorage = localGlobal ? JSON.parse(localGlobal) : [];
-    textoOriginal = Array.isArray(textoDesdeStorage) ? textoDesdeStorage : [];
-    if (localCap) {
-      const obj = JSON.parse(localCap);
-      const nuevoCapitulo = [];
-      Object.entries(obj).forEach(([k, v]) => {
-        const index = parseInt(k, 10) - 1;
-        nuevoCapitulo[index] = v;
-      });
-      textoOriginal[capituloActual] = nuevoCapitulo;
-    }
+  if (localData) {
+    textoOriginal = JSON.parse(localData);
     mostrarVersiculo();
     return;
   }
@@ -130,7 +117,7 @@ function mostrarVersiculo() {
 
   output.innerHTML = "";
   const capitulo = textoOriginal[capituloActual];
-  if (!Array.isArray(capitulo)) {
+  if (!capitulo) {
     output.innerHTML = "<p>Capítulo no encontrado.</p>";
     return;
   }
