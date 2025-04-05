@@ -32,15 +32,6 @@
     .verse-word.editing {
       background-color: #fffae6;
     }
-    .restore-btn {
-      font-size: 12px;
-      margin-left: 10px;
-      color: #007bff;
-      cursor: pointer;
-    }
-    .restore-btn:hover {
-      text-decoration: underline;
-    }
     #saveCancelBar {
       position: fixed;
       bottom: 0;
@@ -61,10 +52,21 @@
   </header>
 
   <div class="container mt-3">
-    <input type="text" id="searchInput" class="form-control mb-3" placeholder="Ej: Juan 3:16 o una palabra clave...">
+    <div class="mb-3">
+      <input type="text" id="searchInput" class="form-control" placeholder="Ej: Juan 3:16 o una palabra clave...">
+    </div>
+    <div class="row mb-3">
+      <div class="col">
+        <select id="libroSelect" class="form-select"></select>
+      </div>
+      <div class="col">
+        <select id="capituloSelect" class="form-select">
+          <option value="">Capítulo</option>
+        </select>
+      </div>
+    </div>
     <button class="btn btn-primary w-100 mb-3" onclick="buscarVersiculo()">Buscar</button>
-
-
+    <button class="btn btn-danger w-100 mb-3" onclick="restaurarVersiculo()">Restaurar versículo</button>
 
     <div id="resultados" class="bg-white p-3 rounded shadow-sm"></div>
   </div>
