@@ -51,25 +51,63 @@ let versiculoActual = null;
 
 function poblarDropdowns() {
   const libroSelect = document.getElementById("libroSelect");
-  if (!libroSelect) return;
+  const capituloSelect = document.getElementById("capituloSelect");
+  if (!libroSelect || !capituloSelect) return;
 
-  libroSelect.innerHTML = `<option value="">Selecciona un libro</option>`;
+  libroSelect.innerHTML = `<option value="">Libro</option>`;
   for (const libro in fuentesRVR) {
     const opt = document.createElement("option");
     opt.value = libro;
     opt.textContent = libro;
     libroSelect.appendChild(opt);
   }
+
+  libroSelect.addEventListener("change", () => {
+    const libro = libroSelect.value;
+    if (!libro) return;
+    fetch(fuentesRVR[libro])
+      .then(r => r.json())
+      .then(data => {
+        capituloSelect.innerHTML = "<option value=''>Capítulo</option>";
+        data.forEach((_, i) => {
+          const opt = document.createElement("option");
+          opt.value = i + 1;
+          opt.textContent = `Capítulo ${i + 1}`;
+          capituloSelect.appendChild(opt);
+        });
+      });
+  });
+
+  capituloSelect.addEventListener("change", () => {
+    const libro = libroSelect.value;
+    const capitulo = capituloSelect.value;
+    if (libro && capitulo) {
+      document.getElementById("searchInput").value = `${libro} ${capitulo}`;
+      buscarVersiculo();
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", poblarDropdowns);
 
 document.addEventListener("DOMContentLoaded", () => {
   const botonGlobal = document.createElement("button");
-  botonGlobal.className = "btn btn-warning w-100 mb-2";
+  botonGlobal.className = "btn btn-warning btn-sm me-2 mb-2";
   botonGlobal.textContent = "Reemplazo global";
   botonGlobal.onclick = reemplazoGlobal;
-  document.querySelector(".container").insertBefore(botonGlobal, document.getElementById("resultados"));
+
+  const botonRestaurar = document.createElement("button");
+  botonRestaurar.className = "btn btn-danger btn-sm mb-2";
+  botonRestaurar.textContent = "Restaurar versículo";
+  botonRestaurar.onclick = restaurarVersiculo;
+
+  const barra = document.getElementById("topBar");
+  barra.appendChild(botonGlobal);
+  barra.appendChild(botonRestaurar);
+
+  document.getElementById("searchInput").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") buscarVersiculo();
+  });
 });
 
 function buscarVersiculo() {
@@ -88,10 +126,23 @@ function buscarVersiculo() {
   libroActual = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
 
   const claveLocal = `global_${libroActual}`;
-  const localData = localStorage.getItem(claveLocal);
+  const claveCap = `${libroActual}_${capituloActual}`;
+  const localGlobal = localStorage.getItem(claveLocal);
+  const localCap = localStorage.getItem(claveCap);
 
-  if (localData) {
-    textoOriginal = JSON.parse(localData);
+  if (localGlobal) textoOriginal = JSON.parse(localGlobal);
+
+  if (localCap) {
+    const override = JSON.parse(localCap);
+    for (const verso in override) {
+      const idx = parseInt(verso) - 1;
+      textoOriginal[capituloActual][idx] = override[verso];
+    }
+    mostrarVersiculo();
+    return;
+  }
+
+  if (localGlobal) {
     mostrarVersiculo();
     return;
   }
@@ -128,7 +179,7 @@ function mostrarVersiculo() {
       output.innerHTML = "<p>Versículo no encontrado.</p>";
       return;
     }
-    renderizarVersiculo(verso);
+    renderizarVersiculo(verso, versiculoActual + 1);
   } else {
     capitulo.forEach((texto, idx) => renderizarVersiculo(texto, idx + 1));
   }
@@ -158,25 +209,20 @@ function mostrarBarraGuardar() {
   document.getElementById("saveCancelBar").style.display = "flex";
 }
 
-// CORREGIDA función guardarCambios()
 function guardarCambios() {
   const versos = document.querySelectorAll("#resultados p");
-  if (!textoEditado[capituloActual]) textoEditado[capituloActual] = {};
-
   versos.forEach(p => {
     const numero = p.querySelector("b").innerText;
     const idx = parseInt(numero) - 1;
     const palabras = Array.from(p.querySelectorAll(".verse-word")).map(span => span.innerText.trim());
     const textoFinal = palabras.join(" ");
-
+    if (!textoEditado[capituloActual]) textoEditado[capituloActual] = {};
     textoEditado[capituloActual][numero] = textoFinal;
-    if (!textoOriginal[capituloActual]) textoOriginal[capituloActual] = [];
     textoOriginal[capituloActual][idx] = textoFinal;
   });
 
   const clave = `${libroActual}_${capituloActual}`;
   localStorage.setItem(clave, JSON.stringify(textoEditado[capituloActual]));
-
   document.getElementById("saveCancelBar").style.display = "none";
   alert("Cambios guardados localmente");
 }
@@ -184,7 +230,7 @@ function guardarCambios() {
 function cancelarCambios() {
   textoEditado[capituloActual] = {};
   document.getElementById("saveCancelBar").style.display = "none";
-  mostrarVersiculo();
+  buscarVersiculo();
 }
 
 function reemplazoGlobal() {
@@ -207,15 +253,6 @@ function reemplazoGlobal() {
 
   alert(`Reemplazo global de "${desde}" por "${hasta}" completado en todos los libros.`);
 }
-
-// Buscar con tecla Enter
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("searchInput").addEventListener("keypress", function (e) {
-    if (e.key === "Enter") {
-      buscarVersiculo();
-    }
-  });
-});
 
 function restaurarVersiculo() {
   const cita = prompt("¿Qué versículo deseas restaurar? (Ej: Juan 3:16)");
@@ -247,7 +284,7 @@ function restaurarVersiculo() {
   }
 
   if (libro === libroActual && cap === capituloActual) {
-    buscarVersiculo(); // recargar la vista si es el capítulo actual
+    buscarVersiculo();
   }
 
   alert("Versículo restaurado.");
