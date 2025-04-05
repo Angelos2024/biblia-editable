@@ -88,22 +88,8 @@ function poblarDropdowns() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", poblarDropdowns);
-
 document.addEventListener("DOMContentLoaded", () => {
-  const botonGlobal = document.createElement("button");
-  botonGlobal.className = "btn btn-warning btn-sm me-2 mb-2";
-  botonGlobal.textContent = "Reemplazo global";
-  botonGlobal.onclick = reemplazoGlobal;
-
-  const botonRestaurar = document.createElement("button");
-  botonRestaurar.className = "btn btn-danger btn-sm mb-2";
-  botonRestaurar.textContent = "Restaurar versículo";
-  botonRestaurar.onclick = restaurarVersiculo;
-
-  const barra = document.getElementById("topBar");
-  barra.appendChild(botonGlobal);
-  barra.appendChild(botonRestaurar);
+  poblarDropdowns();
 
   document.getElementById("searchInput").addEventListener("keypress", function (e) {
     if (e.key === "Enter") buscarVersiculo();
@@ -122,7 +108,6 @@ function buscarVersiculo() {
   let libroEntrada = match[1];
   capituloActual = parseInt(match[2], 10) - 1;
   versiculoActual = match[3] ? parseInt(match[3], 10) - 1 : null;
-
   libroActual = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
 
   const claveLocal = `global_${libroActual}`;
@@ -130,7 +115,9 @@ function buscarVersiculo() {
   const localGlobal = localStorage.getItem(claveLocal);
   const localCap = localStorage.getItem(claveCap);
 
-  if (localGlobal) textoOriginal = JSON.parse(localGlobal);
+  if (localGlobal) {
+    textoOriginal = JSON.parse(localGlobal);
+  }
 
   if (localCap) {
     const override = JSON.parse(localCap);
@@ -138,11 +125,6 @@ function buscarVersiculo() {
       const idx = parseInt(verso) - 1;
       textoOriginal[capituloActual][idx] = override[verso];
     }
-    mostrarVersiculo();
-    return;
-  }
-
-  if (localGlobal) {
     mostrarVersiculo();
     return;
   }
