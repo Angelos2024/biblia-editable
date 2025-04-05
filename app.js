@@ -94,7 +94,8 @@ function buscarVersiculo() {
   const localGlobal = localStorage.getItem(claveGlobal);
 
   if (localCap || localGlobal) {
-    textoOriginal = localGlobal ? JSON.parse(localGlobal) : [];
+    const textoDesdeStorage = localGlobal ? JSON.parse(localGlobal) : [];
+    textoOriginal = Array.isArray(textoDesdeStorage) ? textoDesdeStorage : [];
     if (localCap) {
       textoOriginal[capituloActual] = JSON.parse(localCap);
     }
@@ -123,7 +124,7 @@ function mostrarVersiculo() {
 
   output.innerHTML = "";
   const capitulo = textoOriginal[capituloActual];
-  if (!capitulo) {
+  if (!Array.isArray(capitulo)) {
     output.innerHTML = "<p>Capítulo no encontrado.</p>";
     return;
   }
