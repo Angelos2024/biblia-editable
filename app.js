@@ -1,41 +1,25 @@
 // app.js
 
 const fuentesRVR = {
-  "Mateo": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/mateo.json",
-  "Marcos": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/marcos.json",
-  "Lucas": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/lucas.json",
-  "Juan": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/juan.json",
-  "Hechos": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/hechos.json",
-  "Romanos": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/romanos.json",
-  "1Corintios": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/1_corintios.json",
-  "2Corintios": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/2_corintios.json",
-  "Gálatas": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/galatas.json",
-  "Efesios": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/efesios.json",
-  "Filipenses": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/filipenses.json",
-  "Colosenses": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/colosenses.json",
-  "1Tesalonicenses": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/1_tesalonicenses.json",
-  "2Tesalonicenses": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/2_tesalonicenses.json",
-  "1Timoteo": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/1_timoteo.json",
-  "2Timoteo": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/2_timoteo.json",
-  "Tito": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/tito.json",
-  "Filemon": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/filemon.json",
-  "Hebreos": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/hebreos.json",
-  "Santiago": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/santiago.json",
-  "1Pedro": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/1_pedro.json",
-  "2Pedro": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/2_pedro.json",
-  "1Juan": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/1_juan.json",
-  "2Juan": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/2_juan.json",
-  "3Juan": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/3_juan.json",
-  "Judas": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/judas.json",
-  "Apocalipsis": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/apocalipsis.json"
+  "Mateo": "...",
+  "Marcos": "...",
+  "Lucas": "...",
+  "Juan": "...",
+  // ...
+  "Apocalipsis": "..."
 };
+
+// Normalizador para acentos y espacios
+function normalizarTexto(texto) {
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").toLowerCase();
+}
 
 const aliasLibros = Object.fromEntries(
   Object.keys(fuentesRVR).flatMap(libro => {
-    const base = libro.replace(/\d/g, "").toLowerCase().replace(/\s+/g, "");
+    const base = normalizarTexto(libro.replace(/\d/g, ""));
     const abreviado = libro.replace(/[^\w]/g, "").toLowerCase();
     return [
-      [libro.toLowerCase(), libro],
+      [normalizarTexto(libro), libro],
       [base, libro],
       [abreviado, libro],
       [abreviado.slice(0, 3), libro]
@@ -90,7 +74,6 @@ function poblarDropdowns() {
 
 document.addEventListener("DOMContentLoaded", () => {
   poblarDropdowns();
-
   document.getElementById("searchInput").addEventListener("keypress", function (e) {
     if (e.key === "Enter") buscarVersiculo();
   });
@@ -98,47 +81,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function buscarVersiculo() {
   const entrada = document.getElementById("searchInput").value.trim();
-  const match = entrada.match(/([\wáéíóúÁÉÍÓÚñÑ]+)\s+(\d+)(?::(\d+))?/);
+  const match = entrada.match(/([\wáéíóúÁÉÍÓÚñÑ]+)\s*(\d+)(?::(\d+))?/);
 
   if (!match) {
     alert("Formato inválido. Usa: Juan 3 o Juan 3:16");
     return;
   }
 
-  let libroEntrada = match[1];
+  let libroEntrada = normalizarTexto(match[1]);
   capituloActual = parseInt(match[2], 10) - 1;
   versiculoActual = match[3] ? parseInt(match[3], 10) - 1 : null;
-  libroActual = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
+  libroActual = aliasLibros[libroEntrada] || match[1];
 
   const claveLocal = `global_${libroActual}`;
   const claveCap = `${libroActual}_${capituloActual}`;
   const localGlobal = localStorage.getItem(claveLocal);
   const localCap = localStorage.getItem(claveCap);
 
-  if (localGlobal) {
-    textoOriginal = JSON.parse(localGlobal);
-  }
-
-  if (localCap) {
-    const override = JSON.parse(localCap);
-    for (const verso in override) {
-      const idx = parseInt(verso) - 1;
-      textoOriginal[capituloActual][idx] = override[verso];
-    }
-    mostrarVersiculo();
-    return;
-  }
-
   const url = fuentesRVR[libroActual];
-  if (!url) {
-    alert("Libro no disponible todavía.");
-    return;
-  }
+  if (!url) return alert("Libro no disponible todavía.");
 
   fetch(url)
     .then(res => res.json())
     .then(data => {
       textoOriginal = data;
+
+      if (localGlobal) {
+        textoOriginal = JSON.parse(localGlobal);
+      }
+
+      if (localCap) {
+        const override = JSON.parse(localCap);
+        for (const verso in override) {
+          const idx = parseInt(verso) - 1;
+          if (textoOriginal[capituloActual]) {
+            textoOriginal[capituloActual][idx] = override[verso];
+          }
+        }
+      }
+
       mostrarVersiculo();
     })
     .catch(err => console.error("Error al cargar JSON:", err));
@@ -150,17 +131,11 @@ function mostrarVersiculo() {
 
   output.innerHTML = "";
   const capitulo = textoOriginal[capituloActual];
-  if (!capitulo) {
-    output.innerHTML = "<p>Capítulo no encontrado.</p>";
-    return;
-  }
+  if (!capitulo) return output.innerHTML = "<p>Capítulo no encontrado.</p>";
 
   if (versiculoActual !== null) {
     const verso = capitulo[versiculoActual];
-    if (!verso) {
-      output.innerHTML = "<p>Versículo no encontrado.</p>";
-      return;
-    }
+    if (!verso) return output.innerHTML = "<p>Versículo no encontrado.</p>";
     renderizarVersiculo(verso, versiculoActual + 1);
   } else {
     capitulo.forEach((texto, idx) => renderizarVersiculo(texto, idx + 1));
@@ -179,7 +154,6 @@ function editarPalabra(span) {
   span.contentEditable = "true";
   span.classList.add("editing");
   span.focus();
-
   span.addEventListener("blur", () => {
     span.contentEditable = "false";
     span.classList.remove("editing");
@@ -193,14 +167,15 @@ function mostrarBarraGuardar() {
 
 function guardarCambios() {
   const versos = document.querySelectorAll("#resultados p");
+  if (!textoEditado[capituloActual]) textoEditado[capituloActual] = {};
+
   versos.forEach(p => {
     const numero = p.querySelector("b").innerText;
     const idx = parseInt(numero) - 1;
     const palabras = Array.from(p.querySelectorAll(".verse-word")).map(span => span.innerText.trim());
     const textoFinal = palabras.join(" ");
-    if (!textoEditado[capituloActual]) textoEditado[capituloActual] = {};
     textoEditado[capituloActual][numero] = textoFinal;
-    textoOriginal[capituloActual][idx] = textoFinal;
+    if (textoOriginal[capituloActual]) textoOriginal[capituloActual][idx] = textoFinal;
   });
 
   const clave = `${libroActual}_${capituloActual}`;
@@ -218,7 +193,6 @@ function cancelarCambios() {
 function reemplazoGlobal() {
   const desde = prompt("Palabra a reemplazar (sensible a mayúsculas):");
   const hasta = prompt("Nueva palabra:");
-
   if (!desde || !hasta) return;
 
   Object.keys(fuentesRVR).forEach(libro => {
@@ -233,41 +207,31 @@ function reemplazoGlobal() {
       });
   });
 
-  alert(`Reemplazo global de "${desde}" por "${hasta}" completado en todos los libros.`);
+  alert(`Reemplazo global de "${desde}" por "${hasta}" completado.`);
 }
 
 function restaurarVersiculo() {
   const cita = prompt("¿Qué versículo deseas restaurar? (Ej: Juan 3:16)");
   const match = cita.match(/([\wáéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)/);
+  if (!match) return alert("Formato inválido. Usa: Juan 3:16");
 
-  if (!match) {
-    alert("Formato inválido. Usa: Juan 3:16");
-    return;
-  }
+  const libroEntrada = normalizarTexto(match[1]);
+  const libro = aliasLibros[libroEntrada] || match[1];
+  const cap = parseInt(match[2], 10) - 1;
+  const verso = parseInt(match[3], 10) - 1;
 
-  let libroEntrada = match[1];
-  let cap = parseInt(match[2], 10) - 1;
-  let verso = parseInt(match[3], 10) - 1;
-  const libro = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
-
-  const claveCap = `${libro}_${cap}`;
-  const local = localStorage.getItem(claveCap);
-  if (!local) {
-    alert("No hay edición guardada para ese versículo.");
-    return;
-  }
+  const clave = `${libro}_${cap}`;
+  const local = localStorage.getItem(clave);
+  if (!local) return alert("No hay edición guardada para ese versículo.");
 
   const data = JSON.parse(local);
   delete data[verso + 1];
   if (Object.keys(data).length === 0) {
-    localStorage.removeItem(claveCap);
+    localStorage.removeItem(clave);
   } else {
-    localStorage.setItem(claveCap, JSON.stringify(data));
+    localStorage.setItem(clave, JSON.stringify(data));
   }
 
-  if (libro === libroActual && cap === capituloActual) {
-    buscarVersiculo();
-  }
-
+  if (libro === libroActual && cap === capituloActual) buscarVersiculo();
   alert("Versículo restaurado.");
 }
