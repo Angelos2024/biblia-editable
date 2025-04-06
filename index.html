@@ -32,6 +32,15 @@
     .verse-word.editing {
       background-color: #fffae6;
     }
+    .restore-btn {
+      font-size: 12px;
+      margin-left: 10px;
+      color: #007bff;
+      cursor: pointer;
+    }
+    .restore-btn:hover {
+      text-decoration: underline;
+    }
     #saveCancelBar {
       position: fixed;
       bottom: 0;
@@ -44,9 +53,19 @@
       padding: 10px;
       z-index: 1000;
     }
-    .btn-smaller {
-      font-size: 14px;
+    .top-buttons {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .top-buttons button {
+      flex: 1 1 auto;
+      font-size: 0.85rem;
       padding: 4px 8px;
+    }
+    .form-select {
+      font-size: 0.85rem;
     }
   </style>
 </head>
@@ -56,18 +75,22 @@
   </header>
 
   <div class="container mt-3">
-
-    <div class="mb-2 d-flex gap-2">
-      <select id="libroSelect" class="form-select form-select-sm w-50"></select>
-      <select id="capituloSelect" class="form-select form-select-sm w-50"></select>
+    <div class="top-buttons">
+      <input type="text" id="searchInput" class="form-control" placeholder="Ej: Juan 3:16 o palabra clave...">
+      <button class="btn btn-primary" onclick="buscarVersiculo()">Buscar</button>
+      <button class="btn btn-success" onclick="restaurarVersiculo()">Restaurar versículo</button>
+      <button class="btn btn-warning" onclick="reemplazoGlobal()">Reemplazo global</button>
     </div>
 
-    <div class="d-flex flex-column flex-md-row gap-2 mb-2">
-      <input type="text" id="searchInput" class="form-control" placeholder="Ej: Juan 3:16 o Juan 1">
-      <button class="btn btn-primary btn-smaller" onclick="buscarVersiculo()">Buscar</button>
-      <button class="btn btn-warning btn-smaller" onclick="reemplazoGlobal()">Reemplazo global</button>
-      <button class="btn btn-danger btn-smaller" onclick="restaurarVersiculo()">Restaurar versículo</button>
+    <div class="row mb-3">
+      <div class="col-6">
+        <select id="libroSelect" class="form-select"></select>
+      </div>
+      <div class="col-6">
+        <select id="capituloSelect" class="form-select"></select>
+      </div>
     </div>
+<div id="topBar" class="d-flex gap-2 flex-wrap mb-3"></div>
 
     <div id="resultados" class="bg-white p-3 rounded shadow-sm"></div>
   </div>
