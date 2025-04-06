@@ -115,33 +115,51 @@ function buscarVersiculo() {
   const localGlobal = localStorage.getItem(claveLocal);
   const localCap = localStorage.getItem(claveCap);
 
-  if (localGlobal) {
-    textoOriginal = JSON.parse(localGlobal);
-  }
-
-  if (localCap) {
-    const override = JSON.parse(localCap);
-    for (const verso in override) {
-      const idx = parseInt(verso) - 1;
-      textoOriginal[capituloActual][idx] = override[verso];
-    }
-    mostrarVersiculo();
-    return;
-  }
-
   const url = fuentesRVR[libroActual];
   if (!url) {
     alert("Libro no disponible todavía.");
     return;
   }
 
-  fetch(url)
-    .then(res => res.json())
-    .then(data => {
-      textoOriginal = data;
-      mostrarVersiculo();
-    })
-    .catch(err => console.error("Error al cargar JSON:", err));
+  // Si hay versión global en caché, úsala como base
+  if (localGlobal) {
+    textoOriginal = JSON.parse(localGlobal);
+  }
+
+  // Si no hay datos cargados, obtener del fetch
+  if (!textoOriginal || !textoOriginal.length || !textoOriginal[capituloActual]) {
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        textoOriginal = data;
+
+        // Si hay una versión editada del capítulo, aplicar los cambios
+        if (localCap) {
+          const override = JSON.parse(localCap);
+          for (const verso in override) {
+            const idx = parseInt(verso) - 1;
+            if (textoOriginal[capituloActual]) {
+              textoOriginal[capituloActual][idx] = override[verso];
+            }
+          }
+        }
+
+        mostrarVersiculo();
+      })
+      .catch(err => console.error("Error al cargar JSON:", err));
+  } else {
+    // Ya se cargó (de caché), aplicar cambios si existen
+    if (localCap) {
+      const override = JSON.parse(localCap);
+      for (const verso in override) {
+        const idx = parseInt(verso) - 1;
+        if (textoOriginal[capituloActual]) {
+          textoOriginal[capituloActual][idx] = override[verso];
+        }
+      }
+    }
+    mostrarVersiculo();
+  }
 }
 
 function mostrarVersiculo() {
