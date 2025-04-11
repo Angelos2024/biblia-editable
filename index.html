@@ -147,7 +147,6 @@
     <button class="btn btn-secondary" onclick="cancelarCambios()">Cancelar</button>
   </div>
 
-  <!-- Ventana flotante para notas -->
   <div id="notaFlotante" style="display:none; position:fixed; z-index:2000; background:#fff; border:2px solid #ccc; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.3); width:90%; max-width:500px; padding:0; font-family: 'Segoe UI', sans-serif;">
     <div id="notaHeader" style="padding:10px; background:#0088cc; color:#fff; cursor:move; border-top-left-radius:10px; border-top-right-radius:10px; font-weight:bold;">
       📝 Nota para: <span id="palabraActual"></span>
@@ -161,9 +160,13 @@
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Scripts con defer para asegurar carga del DOM -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+  <script src="https://apis.google.com/js/api.js" defer></script>
+  <script src="drive.js" defer></script>
+  <script src="app.js" defer></script>
+  <script src="notas.js" defer></script>
 
   <script>
     let usuarioGoogle = null;
@@ -182,20 +185,15 @@
       document.getElementById("userName").textContent = payload.name;
       document.getElementById("userMenu").style.display = "inline-block";
     }
-function cerrarSesion() {
-  google.accounts.id.disableAutoSelect();
-  usuarioGoogle = null;
-  document.getElementById("userAvatar").style.display = "none";
-  document.getElementById("googleSignInContainer").style.display = "block";
-  document.getElementById("userMenu").style.display = "none";
-  console.log("Usuario cerró sesión.");
-}
 
+    function cerrarSesion() {
+      google.accounts.id.disableAutoSelect();
+      usuarioGoogle = null;
+      document.getElementById("userAvatar").style.display = "none";
+      document.getElementById("googleSignInContainer").style.display = "block";
+      document.getElementById("userMenu").style.display = "none";
+      console.log("Usuario cerró sesión.");
+    }
   </script>
-
-  <script src="https://apis.google.com/js/api.js"></script>
-  <script src="drive.js"></script>
-  <script src="app.js"></script>
-  <script src="notas.js"></script>
 </body>
 </html>
