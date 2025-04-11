@@ -1,19 +1,32 @@
-// drive.js
+// drive.js - actualizado para usar Google Identity Services (GIS)
+
 let gapiInitialized = false;
+let accessToken = null;
+let tokenClient = null;
 
 function inicializarGapi(callback) {
-  if (gapiInitialized) return callback();
+  if (accessToken) return callback();
 
-  gapi.load("client:auth2", async () => {
-    await gapi.client.init({
-      apiKey: "", // opcional
-      clientId: "87556669122-8vahjvva6kdvj3c8c5gvu09h2b1ve0p4.apps.googleusercontent.com",
-      scope: "https://www.googleapis.com/auth/drive.file"
+  if (!tokenClient) {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: '87556669122-8vahjvva6kdvj3c8c5gvu09h2b1ve0p4.apps.googleusercontent.com',
+      scope: 'https://www.googleapis.com/auth/drive.file',
+      callback: (tokenResponse) => {
+        if (tokenResponse.error) {
+          console.error('Error al obtener token:', tokenResponse);
+          return;
+        }
+        accessToken = tokenResponse.access_token;
+        gapi.load('client', async () => {
+          await gapi.client.load('drive', 'v3');
+          gapiInitialized = true;
+          callback();
+        });
+      }
     });
-    gapiInitialized = true;
-    await gapi.auth2.getAuthInstance().signIn(); // por si hace falta renovar sesión
-    callback();
-  });
+  }
+
+  tokenClient.requestAccessToken();
 }
 
 function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
@@ -36,8 +49,6 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
       const form = new FormData();
       form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
       form.append("file", fileContent);
-
-      const accessToken = gapi.auth.getToken().access_token;
 
       const url = fileId
         ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id`
@@ -87,7 +98,7 @@ function cargarDesdeDrive(nombreArchivo, callback) {
   inicializarGapi(() => {
     buscarArchivoExistente(nombreArchivo, (fileId) => {
       if (!fileId) {
-        callback(null); // No hay edición en Drive
+        callback(null);
         return;
       }
 
@@ -95,10 +106,9 @@ function cargarDesdeDrive(nombreArchivo, callback) {
         fileId: fileId,
         alt: "media"
       }).then(response => {
-        const data = response.body;
         try {
-          const json = JSON.parse(data);
-          callback(json); // Se pasó el contenido editado al callback
+          const json = JSON.parse(response.body);
+          callback(json);
         } catch (e) {
           console.error("Error al parsear JSON desde Drive:", e);
           callback(null);
@@ -112,73 +122,9 @@ function cargarDesdeDrive(nombreArchivo, callback) {
 }
 
 function guardarNotasEnDrive(nombreArchivo, notasJSON) {
-  if (!usuarioGoogle) return;
-
-  inicializarGapi(() => {
-    buscarArchivoExistente(nombreArchivo, (fileId) => {
-      const metadata = {
-        name: nombreArchivo,
-        mimeType: "application/json"
-      };
-
-      const fileContent = new Blob([JSON.stringify(notasJSON, null, 2)], {
-        type: "application/json"
-      });
-
-      const form = new FormData();
-      form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-      form.append("file", fileContent);
-
-      const accessToken = gapi.auth.getToken().access_token;
-
-      const url = fileId
-        ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id`
-        : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id";
-
-      fetch(url, {
-        method: fileId ? "PATCH" : "POST",
-        headers: new Headers({ Authorization: "Bearer " + accessToken }),
-        body: form
-      })
-        .then(res => res.json())
-        .then(data => {
-          console.log("Notas guardadas en Drive:", data);
-        })
-        .catch(err => {
-          console.error("Error al guardar notas en Drive:", err);
-        });
-    });
-  });
+  guardarCambiosEnDrive(nombreArchivo, notasJSON);
 }
 
 function cargarNotasDesdeDrive(nombreArchivo, callback) {
-  if (!usuarioGoogle) {
-    callback(null);
-    return;
-  }
-
-  inicializarGapi(() => {
-    buscarArchivoExistente(nombreArchivo, (fileId) => {
-      if (!fileId) {
-        callback(null);
-        return;
-      }
-
-      gapi.client.drive.files.get({
-        fileId: fileId,
-        alt: "media"
-      }).then(response => {
-        try {
-          const json = JSON.parse(response.body);
-          callback(json);
-        } catch (e) {
-          console.error("Notas corruptas en Drive", e);
-          callback(null);
-        }
-      }).catch(err => {
-        console.error("Error al cargar notas desde Drive", err);
-        callback(null);
-      });
-    });
-  });
+  cargarDesdeDrive(nombreArchivo, callback);
 }
