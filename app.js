@@ -127,27 +127,39 @@ function buscarVersiculo() {
   }
 
   // Si no hay datos cargados, obtener del fetch
-  if (!textoOriginal || !textoOriginal.length || !textoOriginal[capituloActual]) {
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        textoOriginal = data;
+if (!textoOriginal || !textoOriginal.length || !textoOriginal[capituloActual]) {
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      textoOriginal = data;
 
-        // Si hay una versión editada del capítulo, aplicar los cambios
-        if (localCap) {
-          const override = JSON.parse(localCap);
-          for (const verso in override) {
+      // 🔁 INTENTAR CARGAR DESDE GOOGLE DRIVE
+      const nombreArchivoDrive = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
+      cargarDesdeDrive(nombreArchivoDrive, (overrideDrive) => {
+        const localCap = localStorage.getItem(`${libroActual}_${capituloActual}`);
+
+        if (overrideDrive) {
+          for (const verso in overrideDrive) {
             const idx = parseInt(verso) - 1;
-            if (textoOriginal[capituloActual]) {
-              textoOriginal[capituloActual][idx] = override[verso];
-            }
+            textoOriginal[capituloActual][idx] = overrideDrive[verso];
+          }
+        }
+
+        // También aplicar localStorage si hay
+        if (localCap) {
+          const overrideLocal = JSON.parse(localCap);
+          for (const verso in overrideLocal) {
+            const idx = parseInt(verso) - 1;
+            textoOriginal[capituloActual][idx] = overrideLocal[verso];
           }
         }
 
         mostrarVersiculo();
-      })
-      .catch(err => console.error("Error al cargar JSON:", err));
-  } else {
+      });
+    })
+    .catch(err => console.error("Error al cargar JSON:", err));
+}
+ else {
     // Ya se cargó (de caché), aplicar cambios si existen
     if (localCap) {
       const override = JSON.parse(localCap);
