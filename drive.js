@@ -26,7 +26,7 @@ function inicializarGapi(callback) {
   if (!tokenClient) {
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: '197171923877-5qp8s2b35f83nqull98v5rs9er5ho34m.apps.googleusercontent.com',
-     scope: 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly',
+      scope: 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly',
       callback: (tokenResponse) => {
         if (tokenResponse.error) {
           console.error('❌ Error al obtener token:', tokenResponse);
@@ -63,6 +63,31 @@ function inicializarGapi(callback) {
   }
 }
 
+function obtenerOCrearCarpetaBase(nombreCarpeta, callback) {
+  inicializarGapi(() => {
+    gapi.client.drive.files.list({
+      q: `name='${nombreCarpeta}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+      fields: "files(id, name)"
+    }).then((response) => {
+      const folders = response.result.files;
+      if (folders.length > 0) {
+        callback(folders[0].id); // ya existe
+      } else {
+        // crearla
+        gapi.client.drive.files.create({
+          resource: {
+            name: nombreCarpeta,
+            mimeType: "application/vnd.google-apps.folder"
+          },
+          fields: "id"
+        }).then((res) => {
+          callback(res.result.id);
+        });
+      }
+    });
+  });
+}
+
 function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
   if (!usuarioGoogle) {
     alert("Debes iniciar sesión con Google para guardar en Drive.");
@@ -71,37 +96,40 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
 
   inicializarGapi(() => {
     buscarArchivoExistente(nombreArchivo, (fileId) => {
-      const metadata = {
-        name: nombreArchivo,
-        mimeType: "application/json"
-      };
+      obtenerOCrearCarpetaBase("Basebiblia_editable", (folderId) => {
+        const metadata = {
+          name: nombreArchivo,
+          mimeType: "application/json",
+          parents: [folderId]
+        };
 
-      const fileContent = new Blob([JSON.stringify(contenidoJSON, null, 2)], {
-        type: "application/json"
-      });
-
-      const form = new FormData();
-      form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-      form.append("file", fileContent);
-
-      const url = fileId
-        ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id`
-        : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id";
-
-      fetch(url, {
-        method: fileId ? "PATCH" : "POST",
-        headers: new Headers({ Authorization: "Bearer " + accessToken }),
-        body: form
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log("Archivo guardado en Drive:", data);
-          alert("✅ Cambios sincronizados en tu Google Drive.");
-        })
-        .catch((err) => {
-          console.error("Error al guardar en Drive:", err);
-          alert("❌ Error al guardar en Google Drive.");
+        const fileContent = new Blob([JSON.stringify(contenidoJSON, null, 2)], {
+          type: "application/json"
         });
+
+        const form = new FormData();
+        form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+        form.append("file", fileContent);
+
+        const url = fileId
+          ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id`
+          : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id";
+
+        fetch(url, {
+          method: fileId ? "PATCH" : "POST",
+          headers: new Headers({ Authorization: "Bearer " + accessToken }),
+          body: form
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("Archivo guardado en Drive carpeta Basebiblia_editable:", data);
+            alert("✅ Cambios sincronizados en Google Drive.");
+          })
+          .catch((err) => {
+            console.error("Error al guardar en Drive:", err);
+            alert("❌ Error al guardar en Google Drive.");
+          });
+      });
     });
   });
 }
@@ -113,12 +141,6 @@ function buscarArchivoExistente(nombreArchivo, callback) {
       fields: "files(id, name)"
     })
     .then((response) => {
-      if (!response.result || !response.result.files) {
-        console.warn("⚠️ No se pudo obtener archivos o la respuesta fue vacía:", response);
-        callback(null);
-        return;
-      }
-
       const files = response.result.files;
       if (files.length > 0) {
         callback(files[0].id);
@@ -172,12 +194,8 @@ function listarArchivosBibliaEditable(callback) {
       fields: "files(id, name, modifiedTime)",
       orderBy: "modifiedTime desc"
     }).then(response => {
-      if (!response.result || !response.result.files) {
-        console.warn("⚠️ No se pudo listar archivos correctamente:", response);
-        callback([]);
-        return;
-      }
-      callback(response.result.files);
+      const files = response.result.files;
+      callback(response.result.files || []);
     }).catch(err => {
       console.error("❌ No se pudieron listar archivos:", err);
       callback([]);
