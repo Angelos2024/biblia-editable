@@ -204,11 +204,24 @@ function buscarVersiculo() {
 
  fetch(url)
   .then(res => res.json())
-  .then(data => {
-    textoOriginal = data;
+.then(data => {
+  textoOriginal = data;
 
-    const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
-    const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
+  const claveGlobal = `global_${libroActual}`;
+  const datosGlobales = localStorage.getItem(claveGlobal);
+  if (datosGlobales) {
+    try {
+      const reemplazo = JSON.parse(datosGlobales);
+      if (reemplazo?.length === textoOriginal.length) {
+        textoOriginal = reemplazo;
+      }
+    } catch (e) {
+      console.warn("❌ Error al parsear reemplazo global:", e);
+    }
+  }
+
+  const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
+  const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
 
     cargarDesdeDrive(nombreTexto, (contenidoDrive) => {
       const localCap = localStorage.getItem(`${libroActual}_${capituloActual}`);
@@ -339,7 +352,7 @@ function reemplazoGlobal() {
       .then(res => res.json())
       .then(data => {
         const textoModificado = data.map(capitulo =>
-          capitulo.map(verso => verso.split(" ").map(pal => pal === desde ? hasta : pal).join(" "))
+          capitulo.map(verso => verso.replace(new RegExp(`\\b${desde}\\b`, 'g'), hasta))
         );
         localStorage.setItem(`global_${libro}`, JSON.stringify(textoModificado));
       });
@@ -347,6 +360,7 @@ function reemplazoGlobal() {
 
   alert(`Reemplazo global de "${desde}" por "${hasta}" completado en todos los libros.`);
 }
+
 
 function restaurarVersiculo() {
   const cita = prompt("¿Qué versículo deseas restaurar? (Ej: Juan 3:16)");
