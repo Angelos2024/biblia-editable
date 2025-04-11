@@ -31,7 +31,6 @@ const fuentesRVR = {
 };
 
 const librosOrdenados = Object.keys(fuentesRVR).sort((a, b) => {
-  // Poner los libros sin número antes que los que tienen número
   const numA = a.match(/^\d/);
   const numB = b.match(/^\d/);
   if (numA && !numB) return 1;
@@ -39,19 +38,64 @@ const librosOrdenados = Object.keys(fuentesRVR).sort((a, b) => {
   return 0;
 });
 
-const aliasLibros = Object.fromEntries(
-  librosOrdenados.flatMap(libro => {
-    const base = libro.replace(/\d/g, "").toLowerCase().replace(/\s+/g, "");
-    const abreviado = libro.replace(/[^\w]/g, "").toLowerCase();
-    return [
-      [libro.toLowerCase(), libro],
-      [base, libro],
-      [abreviado, libro],
-      [abreviado.slice(0, 3), libro]
-    ];
-  })
-);
+const aliasLibros = {};
+librosOrdenados.forEach(libro => {
+  const normalizado = libro.toLowerCase().replace(/\d/g, "").replace(/\s+/g, "");
+  const abreviado = libro.replace(/[^\w]/g, "").toLowerCase();
+
+  if (!aliasLibros[libro.toLowerCase()]) aliasLibros[libro.toLowerCase()] = libro;
+  if (!aliasLibros[normalizado]) aliasLibros[normalizado] = libro;
+  if (!aliasLibros[abreviado]) aliasLibros[abreviado] = libro;
+
+  const corta = abreviado.slice(0, 3);
+  if (!aliasLibros[corta]) aliasLibros[corta] = libro;
+});
+
+// Aliases personalizados seguros
+Object.assign(aliasLibros, {
+  // Evangelios y Hechos
+  "mt": "Mateo",
+  "mc": "Marcos",
+  "mr": "Marcos",
+  "lc": "Lucas",
+  "jn": "Juan",
+  "hch": "Hechos",
+
+  // Cartas Paulinas
+  "rom": "Romanos",
+  "1co": "1Corintios",
+  "2co": "2Corintios",
+  "gal": "Gálatas",
+  "ef": "Efesios",
+  "fil": "Filipenses",
+  "col": "Colosenses",
+  "1ts": "1Tesalonicenses",
+  "2ts": "2Tesalonicenses",
+  "1tm": "1Timoteo",
+  "2tm": "2Timoteo",
+  "tit": "Tito",
+  "flm": "Filemon",
+
+  // Cartas generales
+  "heb": "Hebreos",
+  "stg": "Santiago",
+  "1pe": "1Pedro",
+  "2pe": "2Pedro",
+  "1jn": "1Juan",
+  "2jn": "2Juan",
+  "3jn": "3Juan",
+  "jud": "Judas",
+
+  // Apocalipsis
+  "apo": "Apocalipsis",
+  "ap": "Apocalipsis"
+});
+
+
 console.log("Alias generados:", aliasLibros);
+
+// (Resto del archivo continúa igual sin modificaciones...)
+
 
 
 let textoOriginal = [];
