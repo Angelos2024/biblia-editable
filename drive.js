@@ -12,10 +12,12 @@ function inicializarGapi(callback) {
           apiKey: 'AIzaSyCQ5gfHt75KDNnvxUT3puDhhQTpNYWIU6A',
           discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
         });
+        gapi.client.setToken({ access_token: accessToken });
         gapiInitialized = true;
         callback();
       });
     } else {
+      gapi.client.setToken({ access_token: accessToken });
       callback();
     }
     return;
@@ -24,7 +26,7 @@ function inicializarGapi(callback) {
   if (!tokenClient) {
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: '197171923877-5qp8s2b35f83nqull98v5rs9er5ho34m.apps.googleusercontent.com',
-      scope: 'https://www.googleapis.com/auth/drive.file',
+      scope: 'https://www.googleapis.com/auth/drive',
       callback: (tokenResponse) => {
         if (tokenResponse.error) {
           console.error('❌ Error al obtener token:', tokenResponse);
@@ -33,7 +35,6 @@ function inicializarGapi(callback) {
         }
         accessToken = tokenResponse.access_token;
         sessionStorage.setItem("drive_token", accessToken);
-gapi.client.setToken({ access_token: accessToken });
 
         gapi.load('client', async () => {
           try {
@@ -42,6 +43,7 @@ gapi.client.setToken({ access_token: accessToken });
               discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
             });
 
+            gapi.client.setToken({ access_token: accessToken });
             gapiInitialized = true;
             callback();
           } catch (e) {
