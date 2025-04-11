@@ -1,4 +1,4 @@
-// drive.js - actualizado para usar Google Identity Services (GIS)
+// drive.js - actualizado para usar Google Identity Services (GIS) con manejo de errores
 
 let gapiInitialized = false;
 let accessToken = null;
@@ -13,20 +13,31 @@ function inicializarGapi(callback) {
       scope: 'https://www.googleapis.com/auth/drive.file',
       callback: (tokenResponse) => {
         if (tokenResponse.error) {
-          console.error('Error al obtener token:', tokenResponse);
+          console.error('❌ Error al obtener token:', tokenResponse);
+          alert("❌ No se pudo autenticar con Google Drive. Por favor acepta los permisos.");
           return;
         }
         accessToken = tokenResponse.access_token;
         gapi.load('client', async () => {
-          await gapi.client.load('drive', 'v3');
-          gapiInitialized = true;
-          callback();
+          try {
+            await gapi.client.load('drive', 'v3');
+            gapiInitialized = true;
+            callback();
+          } catch (e) {
+            console.error('❌ Error al cargar cliente de Drive:', e);
+            alert("❌ No se pudo conectar con Google Drive.");
+          }
         });
       }
     });
   }
 
-  tokenClient.requestAccessToken();
+  try {
+    tokenClient.requestAccessToken();
+  } catch (e) {
+    console.error("❌ Error al solicitar token:", e);
+    alert("❌ Ocurrió un problema al iniciar sesión en Google.");
+  }
 }
 
 function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
