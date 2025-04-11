@@ -32,6 +32,9 @@
       border-radius: 50%;
       display: none;
     }
+    #userMenu {
+      display: none;
+    }
     .verse-word {
       display: inline-block;
       margin: 2px;
@@ -100,11 +103,20 @@
              data-type="icon"
              data-size="medium"
              data-theme="filled_black"
-             data-text="signin_with"
              data-shape="circle"
              data-logo_alignment="center"></div>
       </div>
+
       <img id="userAvatar" src="" alt="Avatar">
+
+      <div id="userMenu" class="dropdown">
+        <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <span id="userName">Usuario</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+          <li><button class="dropdown-item" onclick="cerrarSesion()">Cerrar sesión</button></li>
+        </ul>
+      </div>
     </div>
   </header>
 
@@ -160,17 +172,33 @@
       const credential = response.credential;
       const payload = JSON.parse(atob(credential.split('.')[1]));
       usuarioGoogle = payload;
+
       alert(`Bienvenido ${payload.name}`);
       console.log("Usuario autenticado:", payload);
 
-      // Mostrar avatar y ocultar el botón
       document.getElementById("userAvatar").src = payload.picture;
       document.getElementById("userAvatar").style.display = "inline-block";
       document.getElementById("googleSignInContainer").style.display = "none";
+      document.getElementById("userName").textContent = payload.name;
+      document.getElementById("userMenu").style.display = "inline-block";
+    }
+
+    function cerrarSesion() {
+      const auth2 = gapi.auth2.getAuthInstance();
+      if (auth2) {
+        auth2.signOut().then(() => {
+          usuarioGoogle = null;
+          document.getElementById("userAvatar").style.display = "none";
+          document.getElementById("googleSignInContainer").style.display = "block";
+          document.getElementById("userMenu").style.display = "none";
+          console.log("Usuario cerró sesión.");
+        });
+      }
     }
   </script>
-<script src="https://apis.google.com/js/api.js"></script>
-<script src="drive.js"></script>
+
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="drive.js"></script>
   <script src="app.js"></script>
   <script src="notas.js"></script>
 </body>
