@@ -51,12 +51,22 @@ function inicializarGapi(callback) {
     });
   }
 
+gapi.load('client', async () => {
   try {
-    tokenClient.requestAccessToken();
+    await gapi.client.init({
+      apiKey: 'AIzaSyCQ5gfHt75KDNnvxUT3puDhhQTpNYWIU6A',
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+    });
+
+    gapiInitialized = true;
+
+    tokenClient.requestAccessToken(); // ✅ ahora sí, tras init
   } catch (e) {
-    console.error("❌ Error al solicitar token:", e);
-    alert("❌ Ocurrió un problema al iniciar sesión en Google.");
+    console.error('❌ Error al inicializar cliente de Drive:', e);
+    alert("❌ No se pudo conectar con Google Drive.");
   }
+});
+
 }
 
 function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
