@@ -197,56 +197,43 @@ function buscarVersiculo() {
     return;
   }
 
-  // Si hay versión global en caché, úsala como base
-  if (localGlobal) {
-    textoOriginal = JSON.parse(localGlobal);
-  }
+ // Limpiar estado anterior para evitar errores de mezcla
+  textoOriginal = [];
+  textoEditado = {};
+  document.getElementById("resultados").innerHTML = "<p class='text-muted'>⏳ Cargando capítulo...</p>";
 
-  // Si no hay datos cargados, obtener del fetch
-if (!textoOriginal || !textoOriginal.length || !textoOriginal[capituloActual]) {
   fetch(url)
     .then(res => res.json())
     .then(data => {
       textoOriginal = data;
 
-      // 🔁 INTENTAR CARGAR DESDE GOOGLE DRIVE
-      const nombreArchivoDrive = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
-      cargarDesdeDrive(nombreArchivoDrive, (overrideDrive) => {
+      const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
+      const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
+
+      cargarDesdeDrive(nombreTexto, (contenidoDrive) => {
         const localCap = localStorage.getItem(`${libroActual}_${capituloActual}`);
 
-        if (overrideDrive) {
-          for (const verso in overrideDrive) {
+        if (contenidoDrive) {
+          for (const verso in contenidoDrive) {
             const idx = parseInt(verso) - 1;
-            textoOriginal[capituloActual][idx] = overrideDrive[verso];
+            if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+              textoOriginal[capituloActual][idx] = contenidoDrive[verso];
+            }
           }
         }
 
-        // También aplicar localStorage si hay
         if (localCap) {
-          const overrideLocal = JSON.parse(localCap);
-          for (const verso in overrideLocal) {
+          const override = JSON.parse(localCap);
+          for (const verso in override) {
             const idx = parseInt(verso) - 1;
-            textoOriginal[capituloActual][idx] = overrideLocal[verso];
+            if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+              textoOriginal[capituloActual][idx] = override[verso];
+            }
           }
         }
 
         mostrarVersiculo();
-      });
-    })
-    .catch(err => console.error("Error al cargar JSON:", err));
-}
- else {
-    // Ya se cargó (de caché), aplicar cambios si existen
-    if (localCap) {
-      const override = JSON.parse(localCap);
-      for (const verso in override) {
-        const idx = parseInt(verso) - 1;
-        if (textoOriginal[capituloActual]) {
-          textoOriginal[capituloActual][idx] = override[verso];
-        }
-      }
-    }
-    mostrarVersiculo();
+
   }
 }
 
