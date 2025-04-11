@@ -144,6 +144,27 @@ function poblarDropdowns() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    // 🔄 Al iniciar sesión con Google, sincronizar automáticamente el capítulo actual si existe
+  if (typeof usuarioGoogle !== 'undefined' && usuarioGoogle && libroActual && textoOriginal.length > 0) {
+    const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
+    const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
+
+    cargarDesdeDrive(nombreTexto, (json) => {
+      if (json) {
+        localStorage.setItem(`${libroActual}_${capituloActual}`, JSON.stringify(json));
+        buscarVersiculo(); // recargar con la versión de Drive
+      }
+    });
+
+    cargarNotasDesdeDrive(nombreNotas, (notasDrive) => {
+      if (notasDrive) {
+        for (let clave in notasDrive) {
+          localStorage.setItem(clave, notasDrive[clave]);
+        }
+      }
+    });
+  }
+
   poblarDropdowns();
 
   document.getElementById("searchInput").addEventListener("keypress", function (e) {
