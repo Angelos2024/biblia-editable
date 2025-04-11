@@ -237,10 +237,7 @@ function guardarCambios() {
   localStorage.setItem(clave, JSON.stringify(textoEditado[capituloActual]));
   document.getElementById("saveCancelBar").style.display = "none";
   alert("Cambios guardados localmente");
-  if (usuarioGoogle) {
-  const nombreArchivo = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
-  guardarCambiosEnDrive(nombreArchivo, textoEditado[capituloActual]);
-}
+
   if (usuarioGoogle) {
   const capKey = `${libroActual}_${capituloActual}`;
   const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
