@@ -105,57 +105,7 @@ function buscarVersiculo() {
     return;
   }
 
-  let libroEntrada = match[1];
-  capituloActual = parseInt(match[2], 10) - 1;
-  versiculoActual = match[3] ? parseInt(match[3], 10) - 1 : null;
-
-  if (fuentesRVR[libroEntrada]) {
-    libroActual = libroEntrada;
-  } else {
-    libroActual = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
-  }
-
-  const claveLocal = `global_${libroActual}`;
-  const claveCap = `${libroActual}_${capituloActual}`;
-  const localGlobal = localStorage.getItem(claveLocal);
-  const localCap = localStorage.getItem(claveCap);
-
-  const url = fuentesRVR[libroActual];
-  if (!url) {
-    alert("Libro no disponible todavía.");
-    return;
-  }
-
-  if (localGlobal) {
-    textoOriginal = JSON.parse(localGlobal);
-  }
-
-  if (!textoOriginal || !textoOriginal.length || !textoOriginal[capituloActual]) {
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        textoOriginal = data;
-
-        const nombreArchivoDrive = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
-        cargarDesdeDrive(nombreArchivoDrive, (overrideDrive) => {
-          const localCap = localStorage.getItem(`${libroActual}_${capituloActual}`);
-
-          if (overrideDrive) {
-            for (const verso in overrideDrive) {
-              const idx = parseInt(verso) - 1;
-              textoOriginal[capituloActual][idx] = overrideDrive[verso];
-            }
-          }
-
-          if (localCap) {
-            const overrideLocal = JSON.parse(localCap);
-            for (const verso in overrideLocal) {
-              const idx = parseInt(verso) - 1;
-              textoOriginal[capituloActual][idx] = overrideLocal[verso];
-            }
-          }
-
-          mostrarVersiculo();
+  
         });
       })
       .catch(err => console.error("Error al cargar JSON:", err));
