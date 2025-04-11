@@ -9,7 +9,7 @@ function inicializarGapi(callback) {
 
   if (!tokenClient) {
     tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: '87556669122-8vahjvva6kdvj3c8c5gvu09h2b1ve0p4.apps.googleusercontent.com',
+      client_id: '197171923877-5qp8s2b35f83nqull98v5rs9er5ho34m.apps.googleusercontent.com',
       scope: 'https://www.googleapis.com/auth/drive.file',
       callback: (tokenResponse) => {
         if (tokenResponse.error) {
