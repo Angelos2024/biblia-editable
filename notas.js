@@ -3,6 +3,62 @@
 let palabraSeleccionada = null;
 let spanSeleccionado = null;
 
+// Estas dependen del contexto global, asegúrate que libroActual y capituloActual estén disponibles
+
+function aplicarNotasDesdeLocal() {
+  document.querySelectorAll(".verse-word").forEach(span => {
+    const clave = generarClaveNota(span);
+    const nota = localStorage.getItem(clave);
+    if (nota) {
+      span.setAttribute("data-note", nota);
+      span.setAttribute("title", "📝 " + nota);
+    } else {
+      span.removeAttribute("data-note");
+      span.removeAttribute("title");
+    }
+  });
+}
+
+function generarClaveNota(span) {
+  const versiculo = span.closest("p")?.querySelector("b")?.innerText;
+  const palabraIndex = Array.from(span.parentNode.querySelectorAll(".verse-word")).indexOf(span);
+  return `nota_${libroActual}_${capituloActual}_${versiculo}_${palabraIndex}`;
+}
+
+function hacerVentanaArrastrable(elmnt) {
+  const header = document.getElementById("notaHeader");
+  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  if (header) {
+    header.onmousedown = dragMouseDown;
+  }
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    elmnt.style.transform = "none";
+  }
+
+  function closeDragElement() {
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const resultados = document.getElementById("resultados");
   if (!resultados) return;
@@ -59,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
   observer.observe(document.getElementById("resultados"), { childList: true, subtree: true });
 
   // Solo una vez al cargar el capítulo: cargar notas desde Drive si existen
-  if (usuarioGoogle) {
+  if (typeof usuarioGoogle !== 'undefined' && usuarioGoogle && typeof libroActual !== 'undefined' && typeof capituloActual !== 'undefined') {
     const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
 
     cargarNotasDesdeDrive(nombreNotas, (notasDrive) => {
@@ -69,64 +125,9 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem(clave, notasDrive[clave]);
       }
 
-      aplicarNotasDesdeLocal(); // volver a aplicar todas las tooltips
+      aplicarNotasDesdeLocal();
     });
   }
 
-  // Hacer la ventana arrastrable
   hacerVentanaArrastrable(document.getElementById("notaFlotante"));
 });
-
-function aplicarNotasDesdeLocal() {
-  document.querySelectorAll(".verse-word").forEach(span => {
-    const clave = generarClaveNota(span);
-    const nota = localStorage.getItem(clave);
-    if (nota) {
-      span.setAttribute("data-note", nota);
-      span.setAttribute("title", "📝 " + nota);
-    } else {
-      span.removeAttribute("data-note");
-      span.removeAttribute("title");
-    }
-  });
-}
-
-function generarClaveNota(span) {
-  const versiculo = span.closest("p")?.querySelector("b")?.innerText;
-  const palabraIndex = Array.from(span.parentNode.querySelectorAll(".verse-word")).indexOf(span);
-  return `nota_${libroActual}_${capituloActual}_${versiculo}_${palabraIndex}`;
-}
-
-function hacerVentanaArrastrable(elmnt) {
-  const header = document.getElementById("notaHeader");
-  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-  if (header) {
-    header.onmousedown = dragMouseDown;
-  }
-
-  function dragMouseDown(e) {
-    e = e || window.event;
-    e.preventDefault();
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    document.onmousemove = elementDrag;
-  }
-
-  function elementDrag(e) {
-    e = e || window.event;
-    e.preventDefault();
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-    elmnt.style.transform = "none";
-  }
-
-  function closeDragElement() {
-    document.onmouseup = null;
-    document.onmousemove = null;
-  }
-}
