@@ -182,19 +182,15 @@
       document.getElementById("userName").textContent = payload.name;
       document.getElementById("userMenu").style.display = "inline-block";
     }
+function cerrarSesion() {
+  google.accounts.id.disableAutoSelect();
+  usuarioGoogle = null;
+  document.getElementById("userAvatar").style.display = "none";
+  document.getElementById("googleSignInContainer").style.display = "block";
+  document.getElementById("userMenu").style.display = "none";
+  console.log("Usuario cerró sesión.");
+}
 
-    function cerrarSesion() {
-      const auth2 = gapi.auth2.getAuthInstance();
-      if (auth2) {
-        auth2.signOut().then(() => {
-          usuarioGoogle = null;
-          document.getElementById("userAvatar").style.display = "none";
-          document.getElementById("googleSignInContainer").style.display = "block";
-          document.getElementById("userMenu").style.display = "none";
-          console.log("Usuario cerró sesión.");
-        });
-      }
-    }
   </script>
 
   <script src="https://apis.google.com/js/api.js"></script>
