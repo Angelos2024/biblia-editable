@@ -30,14 +30,34 @@ const fuentesRVR = {
   "Apocalipsis": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/apocalipsis.json"
 };
 
+// Ordenar libros para que "Juan" venga antes que "1Juan", "2Juan", etc.
 const librosOrdenados = Object.keys(fuentesRVR).sort((a, b) => {
-  // Poner los libros sin número antes que los que tienen número
   const numA = a.match(/^\d/);
   const numB = b.match(/^\d/);
   if (numA && !numB) return 1;
   if (!numA && numB) return -1;
   return 0;
 });
+
+const aliasLibros = {};
+
+for (const libro of librosOrdenados) {
+  const base = libro.replace(/\d/g, "").toLowerCase().replace(/\s+/g, "");
+  const abreviado = libro.replace(/[^\w]/g, "").toLowerCase();
+  const claves = [
+    libro.toLowerCase(),
+    base,
+    abreviado,
+    abreviado.slice(0, 3)
+  ];
+
+  for (const clave of claves) {
+    if (!(clave in aliasLibros)) {
+      aliasLibros[clave] = libro;
+    }
+  }
+}
+
 
 const aliasLibros = Object.fromEntries(
   librosOrdenados.flatMap(libro => {
