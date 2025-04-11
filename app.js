@@ -241,6 +241,24 @@ function guardarCambios() {
   const nombreArchivo = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
   guardarCambiosEnDrive(nombreArchivo, textoEditado[capituloActual]);
 }
+  if (usuarioGoogle) {
+  const capKey = `${libroActual}_${capituloActual}`;
+  const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
+  const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
+
+  guardarCambiosEnDrive(nombreTexto, textoEditado[capituloActual]);
+
+  // Recoger solo notas del capítulo actual
+  const notasCap = {};
+  for (let clave in localStorage) {
+    if (clave.startsWith(`nota_${libroActual}_${capituloActual}_`)) {
+      notasCap[clave] = localStorage.getItem(clave);
+    }
+  }
+
+  guardarNotasEnDrive(nombreNotas, notasCap);
+}
+
 }
 
 function cancelarCambios() {
