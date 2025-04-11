@@ -33,6 +33,7 @@ function inicializarGapi(callback) {
         }
         accessToken = tokenResponse.access_token;
         sessionStorage.setItem("drive_token", accessToken);
+gapi.client.setToken({ access_token: accessToken });
 
         gapi.load('client', async () => {
           try {
