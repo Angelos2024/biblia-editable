@@ -26,7 +26,7 @@ function inicializarGapi(callback) {
   if (!tokenClient) {
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: '197171923877-5qp8s2b35f83nqull98v5rs9er5ho34m.apps.googleusercontent.com',
-      scope: 'https://www.googleapis.com/auth/drive',
+     scope: 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly',
       callback: (tokenResponse) => {
         if (tokenResponse.error) {
           console.error('❌ Error al obtener token:', tokenResponse);
