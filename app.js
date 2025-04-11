@@ -364,39 +364,61 @@ function reemplazoGlobal() {
 
 function restaurarVersiculo() {
   const cita = prompt("¿Qué versículo deseas restaurar? (Ej: Juan 3:16)");
-  const match = cita.match(/([\wáéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)/);
+  if (!cita) return;
 
+  const match = cita.match(/([\wáéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)/);
   if (!match) {
     alert("Formato inválido. Usa: Juan 3:16");
     return;
   }
 
-  let libroEntrada = match[1];
-  let cap = parseInt(match[2], 10) - 1;
-  let verso = parseInt(match[3], 10) - 1;
+  const libroEntrada = match[1];
+  const cap = parseInt(match[2], 10) - 1;
+  const verso = parseInt(match[3], 10) - 1;
   const libro = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
 
   const claveCap = `${libro}_${cap}`;
-  const local = localStorage.getItem(claveCap);
-  if (!local) {
-    alert("No hay edición guardada para ese versículo.");
+
+  // Cargar fuente original (JSON Reina Valera) desde GitHub
+  const url = fuentesRVR[libro];
+  if (!url) {
+    alert("No se encontró la fuente original para ese libro.");
     return;
   }
 
-  const data = JSON.parse(local);
-  delete data[verso + 1];
-  if (Object.keys(data).length === 0) {
-    localStorage.removeItem(claveCap);
-  } else {
-    localStorage.setItem(claveCap, JSON.stringify(data));
-  }
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      if (!data[cap] || !data[cap][verso]) {
+        alert("Versículo no encontrado en la fuente original.");
+        return;
+      }
 
-  if (libro === libroActual && cap === capituloActual) {
-    buscarVersiculo();
-  }
+      // Eliminar edición local
+      const local = localStorage.getItem(claveCap);
+      const edits = local ? JSON.parse(local) : {};
+      delete edits[verso + 1];
 
-  alert("Versículo restaurado.");
+      if (Object.keys(edits).length === 0) {
+        localStorage.removeItem(claveCap);
+      } else {
+        localStorage.setItem(claveCap, JSON.stringify(edits));
+      }
+
+      // Si el capítulo está actualmente cargado en pantalla, actualizarlo
+      if (libro === libroActual && cap === capituloActual) {
+        textoOriginal[cap][verso] = data[cap][verso];
+        mostrarVersiculo();
+      }
+
+      alert("✅ Versículo restaurado desde fuente original RVR.");
+    })
+    .catch(err => {
+      console.error("❌ Error al restaurar versículo:", err);
+      alert("❌ Ocurrió un error al restaurar el versículo.");
+    });
 }
+
 
 window.buscarVersiculo = buscarVersiculo;
 window.restaurarVersiculo = restaurarVersiculo;
