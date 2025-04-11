@@ -1,11 +1,25 @@
-// drive.js - actualizado para usar Google Identity Services (GIS) con manejo de errores
+// drive.js - actualizado para usar Google Identity Services (GIS) con manejo de errores + lista de archivos y persistencia de sesión
 
 let gapiInitialized = false;
-let accessToken = null;
+let accessToken = sessionStorage.getItem("drive_token") || null;
 let tokenClient = null;
 
 function inicializarGapi(callback) {
-  if (accessToken) return callback();
+  if (accessToken) {
+    if (!gapiInitialized) {
+      gapi.load('client', async () => {
+        await gapi.client.init({
+          apiKey: 'AIzaSyCQ5gfHt75KDNnvxUT3puDhhQTpNYWIU6A',
+          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+        });
+        gapiInitialized = true;
+        callback();
+      });
+    } else {
+      callback();
+    }
+    return;
+  }
 
   if (!tokenClient) {
     tokenClient = google.accounts.oauth2.initTokenClient({
@@ -18,9 +32,14 @@ function inicializarGapi(callback) {
           return;
         }
         accessToken = tokenResponse.access_token;
+        sessionStorage.setItem("drive_token", accessToken);
+
         gapi.load('client', async () => {
           try {
-            await gapi.client.load('drive', 'v3');
+            await gapi.client.init({
+              apiKey: 'AIzaSyCQ5gfHt75KDNnvxUT3puDhhQTpNYWIU6A',
+              discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+            });
             gapiInitialized = true;
             callback();
           } catch (e) {
@@ -128,6 +147,21 @@ function cargarDesdeDrive(nombreArchivo, callback) {
         console.error("No se pudo obtener archivo de Drive:", err);
         callback(null);
       });
+    });
+  });
+}
+
+function listarArchivosBibliaEditable(callback) {
+  inicializarGapi(() => {
+    gapi.client.drive.files.list({
+      q: "name contains 'BibliaEditable_' and mimeType='application/json' and trashed=false",
+      fields: "files(id, name, modifiedTime)",
+      orderBy: "modifiedTime desc"
+    }).then(response => {
+      callback(response.result.files);
+    }).catch(err => {
+      console.error("❌ No se pudieron listar archivos:", err);
+      callback([]);
     });
   });
 }
