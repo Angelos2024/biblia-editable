@@ -15,7 +15,13 @@
       background-color: #0088cc;
       color: white;
       padding: 1rem;
-      text-align: center;
+      position: relative;
+    }
+    .google-login {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
     }
     .verse-word {
       display: inline-block;
@@ -72,6 +78,22 @@
 <body>
   <header>
     <h1>Biblia Editable</h1>
+    <div class="google-login">
+      <div id="g_id_onload"
+           data-client_id="TU_CLIENT_ID"
+           data-context="signin"
+           data-ux_mode="popup"
+           data-callback="onSignIn"
+           data-auto_prompt="false"></div>
+
+      <div class="g_id_signin"
+           data-type="icon"
+           data-size="medium"
+           data-theme="filled_black"
+           data-text="signin_with"
+           data-shape="circle"
+           data-logo_alignment="center"></div>
+    </div>
   </header>
 
   <div class="container mt-3">
@@ -90,7 +112,8 @@
         <select id="capituloSelect" class="form-select"></select>
       </div>
     </div>
-<div id="topBar" class="d-flex gap-2 flex-wrap mb-3"></div>
+
+    <div id="topBar" class="d-flex gap-2 flex-wrap mb-3"></div>
 
     <div id="resultados" class="bg-white p-3 rounded shadow-sm"></div>
   </div>
@@ -99,46 +122,35 @@
     <button class="btn btn-success" onclick="guardarCambios()">Guardar cambios</button>
     <button class="btn btn-secondary" onclick="cancelarCambios()">Cancelar</button>
   </div>
-<!-- Modal para notas -->
-<!-- Modal para notas -->
-<!-- Ventana flotante para notas -->
-<div id="notaFlotante" style="
-  display:none;
-  position:fixed;
-  z-index:2000;
-  background:#fff;
-  border:2px solid #ccc;
-  border-radius:10px;
-  box-shadow:0 0 15px rgba(0,0,0,0.3);
-  width:90%;
-  max-width:500px;
-  padding:0;
-  font-family: 'Segoe UI', sans-serif;
-">
-  <div id="notaHeader" style="
-    padding:10px;
-    background:#0088cc;
-    color:#fff;
-    cursor:move;
-    border-top-left-radius:10px;
-    border-top-right-radius:10px;
-    font-weight:bold;
-  ">
-    📝 Nota para: <span id="palabraActual"></span>
-  </div>
-  <div style="padding:15px;">
-    <textarea id="notaInput" rows="10" class="form-control" style="width:100%; font-family:'Courier New', monospace;"></textarea>
-  </div>
-  <div style="display:flex; justify-content:flex-end; gap:10px; padding:10px;">
-    <button id="cancelarNotaBtn" class="btn btn-secondary">Cancelar</button>
-    <button id="guardarNotaBtn" class="btn btn-success">Guardar</button>
-  </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Ventana flotante para notas -->
+  <div id="notaFlotante" style="display:none; position:fixed; z-index:2000; background:#fff; border:2px solid #ccc; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.3); width:90%; max-width:500px; padding:0; font-family: 'Segoe UI', sans-serif;">
+    <div id="notaHeader" style="padding:10px; background:#0088cc; color:#fff; cursor:move; border-top-left-radius:10px; border-top-right-radius:10px; font-weight:bold;">
+      📝 Nota para: <span id="palabraActual"></span>
+    </div>
+    <div style="padding:15px;">
+      <textarea id="notaInput" rows="10" class="form-control" style="width:100%; font-family:'Courier New', monospace;"></textarea>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:10px; padding:10px;">
+      <button id="cancelarNotaBtn" class="btn btn-secondary">Cancelar</button>
+      <button id="guardarNotaBtn" class="btn btn-success">Guardar</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    function onSignIn(response) {
+      const credential = response.credential;
+      const payload = JSON.parse(atob(credential.split('.')[1]));
+      alert(`Bienvenido ${payload.name}`);
+      console.log("Usuario autenticado:", payload);
+    }
+  </script>
+
   <script src="app.js"></script>
   <script src="notas.js"></script>
-
-
 </body>
 </html>
