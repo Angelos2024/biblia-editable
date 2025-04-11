@@ -40,6 +40,7 @@ function inicializarGapi(callback) {
               apiKey: 'AIzaSyCQ5gfHt75KDNnvxUT3puDhhQTpNYWIU6A',
               discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
             });
+
             gapiInitialized = true;
             callback();
           } catch (e) {
@@ -51,22 +52,12 @@ function inicializarGapi(callback) {
     });
   }
 
-gapi.load('client', async () => {
   try {
-    await gapi.client.init({
-      apiKey: 'AIzaSyCQ5gfHt75KDNnvxUT3puDhhQTpNYWIU6A',
-      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-    });
-
-    gapiInitialized = true;
-
-    tokenClient.requestAccessToken(); // ✅ ahora sí, tras init
+    tokenClient.requestAccessToken();
   } catch (e) {
-    console.error('❌ Error al inicializar cliente de Drive:', e);
-    alert("❌ No se pudo conectar con Google Drive.");
+    console.error("❌ Error al solicitar token:", e);
+    alert("❌ Ocurrió un problema al iniciar sesión en Google.");
   }
-});
-
 }
 
 function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
@@ -119,12 +110,22 @@ function buscarArchivoExistente(nombreArchivo, callback) {
       fields: "files(id, name)"
     })
     .then((response) => {
+      if (!response.result || !response.result.files) {
+        console.warn("⚠️ No se pudo obtener archivos o la respuesta fue vacía:", response);
+        callback(null);
+        return;
+      }
+
       const files = response.result.files;
-      if (files && files.length > 0) {
+      if (files.length > 0) {
         callback(files[0].id);
       } else {
         callback(null);
       }
+    })
+    .catch((err) => {
+      console.error("❌ Error en buscarArchivoExistente:", err);
+      callback(null);
     });
 }
 
@@ -168,6 +169,11 @@ function listarArchivosBibliaEditable(callback) {
       fields: "files(id, name, modifiedTime)",
       orderBy: "modifiedTime desc"
     }).then(response => {
+      if (!response.result || !response.result.files) {
+        console.warn("⚠️ No se pudo listar archivos correctamente:", response);
+        callback([]);
+        return;
+      }
       callback(response.result.files);
     }).catch(err => {
       console.error("❌ No se pudieron listar archivos:", err);
