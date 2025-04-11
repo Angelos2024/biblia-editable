@@ -331,3 +331,9 @@ function restaurarVersiculo() {
 
   alert("Versículo restaurado.");
 }
+
+window.buscarVersiculo = buscarVersiculo;
+window.restaurarVersiculo = restaurarVersiculo;
+window.reemplazoGlobal = reemplazoGlobal;
+window.guardarCambios = guardarCambios;
+window.cancelarCambios = cancelarCambios;
