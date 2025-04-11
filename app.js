@@ -30,8 +30,17 @@ const fuentesRVR = {
   "Apocalipsis": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/apocalipsis.json"
 };
 
+const librosOrdenados = Object.keys(fuentesRVR).sort((a, b) => {
+  // Poner los libros sin número antes que los que tienen número
+  const numA = a.match(/^\d/);
+  const numB = b.match(/^\d/);
+  if (numA && !numB) return 1;
+  if (!numA && numB) return -1;
+  return 0;
+});
+
 const aliasLibros = Object.fromEntries(
-  Object.keys(fuentesRVR).flatMap(libro => {
+  librosOrdenados.flatMap(libro => {
     const base = libro.replace(/\d/g, "").toLowerCase().replace(/\s+/g, "");
     const abreviado = libro.replace(/[^\w]/g, "").toLowerCase();
     return [
@@ -42,6 +51,8 @@ const aliasLibros = Object.fromEntries(
     ];
   })
 );
+console.log("Alias generados:", aliasLibros);
+
 
 let textoOriginal = [];
 let textoEditado = {};
