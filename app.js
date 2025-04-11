@@ -202,40 +202,40 @@ function buscarVersiculo() {
   textoEditado = {};
   document.getElementById("resultados").innerHTML = "<p class='text-muted'>⏳ Cargando capítulo...</p>";
 
-  fetch(url)
-    .then(res => res.json())
-    .then(data => {
-      textoOriginal = data;
+ fetch(url)
+  .then(res => res.json())
+  .then(data => {
+    textoOriginal = data;
 
-      const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
-      const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
+    const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
+    const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
 
-      cargarDesdeDrive(nombreTexto, (contenidoDrive) => {
-        const localCap = localStorage.getItem(`${libroActual}_${capituloActual}`);
+    cargarDesdeDrive(nombreTexto, (contenidoDrive) => {
+      const localCap = localStorage.getItem(`${libroActual}_${capituloActual}`);
 
-        if (contenidoDrive) {
-          for (const verso in contenidoDrive) {
-            const idx = parseInt(verso) - 1;
-            if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
-              textoOriginal[capituloActual][idx] = contenidoDrive[verso];
-            }
+      if (contenidoDrive) {
+        for (const verso in contenidoDrive) {
+          const idx = parseInt(verso) - 1;
+          if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+            textoOriginal[capituloActual][idx] = contenidoDrive[verso];
           }
         }
+      }
 
-        if (localCap) {
-          const override = JSON.parse(localCap);
-          for (const verso in override) {
-            const idx = parseInt(verso) - 1;
-            if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
-              textoOriginal[capituloActual][idx] = override[verso];
-            }
+      if (localCap) {
+        const override = JSON.parse(localCap);
+        for (const verso in override) {
+          const idx = parseInt(verso) - 1;
+          if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+            textoOriginal[capituloActual][idx] = override[verso];
           }
         }
+      }
 
-        mostrarVersiculo();
-
-  }
-}
+      mostrarVersiculo();
+    }); 
+  });  
+}       
 
 function mostrarVersiculo() {
   const output = document.getElementById("resultados");
