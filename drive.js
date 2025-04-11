@@ -76,3 +76,37 @@ function buscarArchivoExistente(nombreArchivo, callback) {
       }
     });
 }
+
+function cargarDesdeDrive(nombreArchivo, callback) {
+  if (!usuarioGoogle) {
+    console.warn("Usuario no autenticado con Google, se usará solo localStorage.");
+    callback(null);
+    return;
+  }
+
+  inicializarGapi(() => {
+    buscarArchivoExistente(nombreArchivo, (fileId) => {
+      if (!fileId) {
+        callback(null); // No hay edición en Drive
+        return;
+      }
+
+      gapi.client.drive.files.get({
+        fileId: fileId,
+        alt: "media"
+      }).then(response => {
+        const data = response.body;
+        try {
+          const json = JSON.parse(data);
+          callback(json); // Se pasó el contenido editado al callback
+        } catch (e) {
+          console.error("Error al parsear JSON desde Drive:", e);
+          callback(null);
+        }
+      }).catch(err => {
+        console.error("No se pudo obtener archivo de Drive:", err);
+        callback(null);
+      });
+    });
+  });
+}
