@@ -1,5 +1,4 @@
-
-// notas_flotante.js - Editor de notas por palabra en ventana flotante y arrastrable
+// notas.js - Editor de notas por palabra sincronizadas con Drive
 
 let palabraSeleccionada = null;
 let spanSeleccionado = null;
@@ -52,26 +51,45 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("notaFlotante").style.display = "none";
   });
 
-  // Cargar notas en palabras visibles
+  // Observador para aplicar las notas al renderizar versos
   const observer = new MutationObserver(() => {
-    document.querySelectorAll(".verse-word").forEach(span => {
-      const clave = generarClaveNota(span);
-      const nota = localStorage.getItem(clave);
-      if (nota) {
-        span.setAttribute("data-note", nota);
-        span.setAttribute("title", "📝 " + nota);
-      } else {
-        span.removeAttribute("data-note");
-        span.removeAttribute("title");
-      }
-    });
+    aplicarNotasDesdeLocal();
   });
 
   observer.observe(document.getElementById("resultados"), { childList: true, subtree: true });
 
+  // Solo una vez al cargar el capítulo: cargar notas desde Drive si existen
+  if (usuarioGoogle) {
+    const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
+
+    cargarNotasDesdeDrive(nombreNotas, (notasDrive) => {
+      if (!notasDrive) return;
+
+      for (let clave in notasDrive) {
+        localStorage.setItem(clave, notasDrive[clave]);
+      }
+
+      aplicarNotasDesdeLocal(); // volver a aplicar todas las tooltips
+    });
+  }
+
   // Hacer la ventana arrastrable
   hacerVentanaArrastrable(document.getElementById("notaFlotante"));
 });
+
+function aplicarNotasDesdeLocal() {
+  document.querySelectorAll(".verse-word").forEach(span => {
+    const clave = generarClaveNota(span);
+    const nota = localStorage.getItem(clave);
+    if (nota) {
+      span.setAttribute("data-note", nota);
+      span.setAttribute("title", "📝 " + nota);
+    } else {
+      span.removeAttribute("data-note");
+      span.removeAttribute("title");
+    }
+  });
+}
 
 function generarClaveNota(span) {
   const versiculo = span.closest("p")?.querySelector("b")?.innerText;
@@ -89,7 +107,6 @@ function hacerVentanaArrastrable(elmnt) {
   function dragMouseDown(e) {
     e = e || window.event;
     e.preventDefault();
-    // obtener la posición del cursor al iniciar
     pos3 = e.clientX;
     pos4 = e.clientY;
     document.onmouseup = closeDragElement;
@@ -99,7 +116,6 @@ function hacerVentanaArrastrable(elmnt) {
   function elementDrag(e) {
     e = e || window.event;
     e.preventDefault();
-    // calcular nueva posición
     pos1 = pos3 - e.clientX;
     pos2 = pos4 - e.clientY;
     pos3 = e.clientX;
