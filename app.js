@@ -352,14 +352,25 @@ function reemplazoGlobal() {
       .then(res => res.json())
       .then(data => {
         const textoModificado = data.map(capitulo =>
-          capitulo.map(verso => verso.replace(new RegExp(`\\b${desde}\\b`, 'g'), hasta))
+          capitulo.map(verso =>
+            verso.replace(new RegExp(`\\b${desde}\\b`, 'g'), hasta)
+          )
         );
+
+        // Guardar en local
         localStorage.setItem(`global_${libro}`, JSON.stringify(textoModificado));
+
+        // Si hay sesión, subir a Google Drive
+        if (usuarioGoogle) {
+          const nombreTexto = `BibliaEditable_${libro}_global.json`;
+          guardarCambiosEnDrive(nombreTexto, textoModificado);
+        }
       });
   });
 
-  alert(`Reemplazo global de "${desde}" por "${hasta}" completado en todos los libros.`);
+  alert(`✅ Reemplazo global de "${desde}" por "${hasta}" completado y sincronizado.`);
 }
+
 
 
 function restaurarVersiculo() {
@@ -376,10 +387,8 @@ function restaurarVersiculo() {
   const cap = parseInt(match[2], 10) - 1;
   const verso = parseInt(match[3], 10) - 1;
   const libro = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
-
   const claveCap = `${libro}_${cap}`;
 
-  // Cargar fuente original (JSON Reina Valera) desde GitHub
   const url = fuentesRVR[libro];
   if (!url) {
     alert("No se encontró la fuente original para ese libro.");
@@ -394,30 +403,46 @@ function restaurarVersiculo() {
         return;
       }
 
-      // Eliminar edición local
+      // ❌ 1. Eliminar edición local
       const local = localStorage.getItem(claveCap);
       const edits = local ? JSON.parse(local) : {};
       delete edits[verso + 1];
-
       if (Object.keys(edits).length === 0) {
         localStorage.removeItem(claveCap);
       } else {
         localStorage.setItem(claveCap, JSON.stringify(edits));
       }
 
-      // Si el capítulo está actualmente cargado en pantalla, actualizarlo
+      // ❌ 2. Eliminar versión en Google Drive si existe
+      if (usuarioGoogle) {
+        const nombreTexto = `BibliaEditable_${libro}_${cap + 1}.json`;
+        buscarArchivoExistente(nombreTexto, (fileId) => {
+          if (fileId) {
+            gapi.client.drive.files.delete({
+              fileId: fileId
+            }).then(() => {
+              console.log("✅ Archivo eliminado de Google Drive:", nombreTexto);
+            }).catch(err => {
+              console.warn("❌ No se pudo eliminar en Drive:", err);
+            });
+          }
+        });
+      }
+
+      // ✅ 3. Si el capítulo está visible, actualizar solo ese versículo
       if (libro === libroActual && cap === capituloActual) {
         textoOriginal[cap][verso] = data[cap][verso];
         mostrarVersiculo();
       }
 
-      alert("✅ Versículo restaurado desde fuente original RVR.");
+      alert("✅ Versículo restaurado desde Reina Valera y eliminado en Drive y Local.");
     })
     .catch(err => {
       console.error("❌ Error al restaurar versículo:", err);
       alert("❌ Ocurrió un error al restaurar el versículo.");
     });
 }
+
 
 
 window.buscarVersiculo = buscarVersiculo;
