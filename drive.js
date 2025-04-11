@@ -135,24 +135,27 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
 }
 
 function buscarArchivoExistente(nombreArchivo, callback) {
-  gapi.client.drive.files
-    .list({
-      q: `name='${nombreArchivo}' and trashed=false`,
-      fields: "files(id, name)"
-    })
-    .then((response) => {
-      const files = response.result.files;
-      if (files.length > 0) {
-        callback(files[0].id);
-      } else {
+  obtenerOCrearCarpetaBase("Basebiblia_editable", (folderId) => {
+    gapi.client.drive.files
+      .list({
+        q: `'${folderId}' in parents and name='${nombreArchivo}' and trashed=false`,
+        fields: "files(id, name)"
+      })
+      .then((response) => {
+        const files = response.result.files;
+        if (files.length > 0) {
+          callback(files[0].id);
+        } else {
+          callback(null);
+        }
+      })
+      .catch((err) => {
+        console.error("❌ Error en buscarArchivoExistente dentro de carpeta:", err);
         callback(null);
-      }
-    })
-    .catch((err) => {
-      console.error("❌ Error en buscarArchivoExistente:", err);
-      callback(null);
-    });
+      });
+  });
 }
+
 
 function cargarDesdeDrive(nombreArchivo, callback) {
   if (!usuarioGoogle) {
