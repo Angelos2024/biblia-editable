@@ -31,7 +31,6 @@ const fuentesRVR = {
   "Apocalipsis": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/apocalipsis.json"
 };
 
-// Ordenar para que libros sin número vayan primero
 const librosOrdenados = Object.keys(fuentesRVR).sort((a, b) => {
   const numA = a.match(/^\d/);
   const numB = b.match(/^\d/);
@@ -56,4 +55,34 @@ for (const libro of librosOrdenados) {
       aliasLibros[clave] = libro;
     }
   }
+}
+
+let textoOriginal = [];
+let textoEditado = {};
+let libroActual = "";
+let capituloActual = 0;
+let versiculoActual = null;
+
+function buscarVersiculo() {
+  const entrada = document.getElementById("searchInput").value.trim();
+  const match = entrada.match(/([\wáéíóúÁÉÍÓÚñÑ]+)\s+(\d+)(?::(\d+))?/);
+
+  if (!match) {
+    alert("Formato inválido. Usa: Juan 3 o Juan 3:16");
+    return;
+  }
+
+  let libroEntrada = match[1];
+  capituloActual = parseInt(match[2], 10) - 1;
+  versiculoActual = match[3] ? parseInt(match[3], 10) - 1 : null;
+
+  if (fuentesRVR[libroEntrada]) {
+    libroActual = libroEntrada;
+  } else {
+    libroActual = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
+  }
+
+  alert(`📘 Cargando: ${libroActual} ${capituloActual + 1}`);
+
+  // Aquí seguiría el resto de la función ya existente (no lo volvemos a copiar para brevedad)
 }
