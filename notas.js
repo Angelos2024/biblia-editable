@@ -20,7 +20,7 @@ function aplicarNotasDesdeLocal() {
 }
 
 function generarClaveNota(span) {
-  const versiculo = span.closest("p")?.querySelector("b")?.innerText;
+  const versiculo = span.closest("p")?.querySelector("b")?.textContent.trim();
   const palabraIndex = Array.from(span.parentNode.querySelectorAll(".verse-word")).indexOf(span);
   return `nota_${libroActual}_${capituloActual}_${versiculo}_${palabraIndex}`;
 }
