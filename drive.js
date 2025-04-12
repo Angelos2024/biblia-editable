@@ -97,11 +97,16 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
   inicializarGapi(() => {
     buscarArchivoExistente(nombreArchivo, (fileId) => {
       obtenerOCrearCarpetaBase("Basebiblia_editable", (folderId) => {
+        const isNuevo = !fileId;
+
         const metadata = {
           name: nombreArchivo,
-          mimeType: "application/json",
-          parents: [folderId]
+          mimeType: "application/json"
         };
+
+        if (isNuevo) {
+          metadata.parents = [folderId]; // solo al crear
+        }
 
         const fileContent = new Blob([JSON.stringify(contenidoJSON, null, 2)], {
           type: "application/json"
@@ -111,12 +116,12 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
         form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
         form.append("file", fileContent);
 
-        const url = fileId
-          ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id`
-          : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id";
+        const url = isNuevo
+          ? "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id"
+          : `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id`;
 
         fetch(url, {
-          method: fileId ? "PATCH" : "POST",
+          method: isNuevo ? "POST" : "PATCH",
           headers: new Headers({ Authorization: "Bearer " + accessToken }),
           body: form
         })
@@ -139,6 +144,7 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
     });
   });
 }
+
 
 
 function buscarArchivoExistente(nombreArchivo, callback) {
