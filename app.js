@@ -443,7 +443,8 @@ function restaurarVersiculo() {
       // 🖥️ 3. Si el capítulo está visible, actualizar solo ese versículo
       if (libro === libroActual && cap === capituloActual) {
         textoOriginal[cap][verso] = textoOriginalVerso;
-        mostrarVersiculo();
+       localStorage.removeItem(`${libro}_${cap}`);
+  mostrarVersiculo();
       }
 
       alert("✅ Versículo restaurado correctamente.");
