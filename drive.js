@@ -120,19 +120,26 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
           headers: new Headers({ Authorization: "Bearer " + accessToken }),
           body: form
         })
-          .then((res) => res.json())
+          .then(async (res) => {
+            if (!res.ok) {
+              const errorText = await res.text();
+              throw new Error(`HTTP ${res.status} – ${errorText}`);
+            }
+            return res.json();
+          })
           .then((data) => {
-            console.log("Archivo guardado en Drive carpeta Basebiblia_editable:", data);
+            console.log("✅ Archivo guardado en Drive:", data);
             alert("✅ Cambios sincronizados en Google Drive.");
           })
           .catch((err) => {
-            console.error("Error al guardar en Drive:", err);
-            alert("❌ Error al guardar en Google Drive.");
+            console.error("❌ Error al guardar en Drive:", err);
+            alert("❌ Error al guardar en Drive:\n" + err.message);
           });
       });
     });
   });
 }
+
 
 function buscarArchivoExistente(nombreArchivo, callback) {
   obtenerOCrearCarpetaBase("Basebiblia_editable", (folderId) => {
