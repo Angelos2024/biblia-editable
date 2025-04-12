@@ -114,8 +114,17 @@
         <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
           <span id="userName">Usuario</span>
         </button>
+        <li><button class="dropdown-item" onclick="exportarVersion()">📤 Exportar mi versión</button></li>
+<li>
+  <label class="dropdown-item" style="cursor: pointer;">
+    📥 Importar versión
+    <input type="file" accept=".zip" style="display:none" onchange="importarVersion(this.files[0])">
+  </label>
+</li>
+
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
           <li><button class="dropdown-item" onclick="cerrarSesion()">Cerrar sesión</button></li>
+          
         </ul>
       </div>
     </div>
