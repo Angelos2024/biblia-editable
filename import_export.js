@@ -1,4 +1,4 @@
-// import_export.js – funciones para importar y exportar versiones completas desde Google Drive
+// import_export_v2.js – exportación/importación segura desde Drive (con validaciones y optimización)
 
 async function exportarVersion() {
   if (!usuarioGoogle) {
@@ -8,30 +8,32 @@ async function exportarVersion() {
 
   inicializarGapi(async () => {
     try {
-      const archivos = await gapi.client.drive.files.list({
-        q: "name contains 'BibliaEditable_' and mimeType='application/json' and trashed=false",
-        fields: "files(id, name)"
-      });
-
-      if (!archivos.result.files.length) {
-        alert("No hay archivos para exportar.");
-        return;
-      }
-
-      const zip = new JSZip();
-      for (const file of archivos.result.files) {
-        const contenido = await gapi.client.drive.files.get({
-          fileId: file.id,
-          alt: "media"
+      obtenerOCrearCarpetaBase("Basebiblia_editable", async (folderId) => {
+        const archivos = await gapi.client.drive.files.list({
+          q: `'${folderId}' in parents and name contains 'BibliaEditable_' and mimeType='application/json' and trashed=false`,
+          fields: "files(id, name)"
         });
-        zip.file(file.name, contenido.body);
-      }
 
-      const blob = await zip.generateAsync({ type: "blob" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "MiBibliaEditable.zip";
-      a.click();
+        if (!archivos.result.files.length) {
+          alert("No hay archivos para exportar.");
+          return;
+        }
+
+        const zip = new JSZip();
+        for (const file of archivos.result.files) {
+          const contenido = await gapi.client.drive.files.get({
+            fileId: file.id,
+            alt: "media"
+          });
+          zip.file(file.name, contenido.body);
+        }
+
+        const blob = await zip.generateAsync({ type: "blob" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "MiBibliaEditable.zip";
+        a.click();
+      });
     } catch (e) {
       console.error("❌ Error al exportar:", e);
       alert("❌ Ocurrió un error al exportar.");
@@ -52,19 +54,25 @@ async function importarVersion(file) {
 
   inicializarGapi(async () => {
     try {
-      const existentes = await gapi.client.drive.files.list({
-        q: "name contains 'BibliaEditable_' and mimeType='application/json' and trashed=false",
-        fields: "files(id, name)"
-      });
-
-      // Borrar todos los existentes
-      for (const file of existentes.result.files) {
-        await gapi.client.drive.files.delete({ fileId: file.id });
-      }
-
-      // Subir los nuevos
       obtenerOCrearCarpetaBase("Basebiblia_editable", async (folderId) => {
+        // 🧹 Borrar todos los archivos dentro de la carpeta base
+        const existentes = await gapi.client.drive.files.list({
+          q: `'${folderId}' in parents and name contains 'BibliaEditable_' and mimeType='application/json' and trashed=false`,
+          fields: "files(id, name)"
+        });
+
+        for (const file of existentes.result.files) {
+          await gapi.client.drive.files.delete({ fileId: file.id });
+        }
+
+        // 📤 Subir nuevos archivos del .zip
         for (const nombre of archivos) {
+          // Validar nombre
+          if (!nombre.startsWith("BibliaEditable_") || !nombre.endsWith(".json")) {
+            console.warn("❌ Archivo ignorado por nombre inválido:", nombre);
+            continue;
+          }
+
           const contenido = await zip.file(nombre).async("string");
 
           const metadata = {
@@ -86,7 +94,7 @@ async function importarVersion(file) {
         }
 
         alert("✅ Versión importada y sincronizada con éxito.");
-        location.reload();
+        location.reload(); // puedes quitar esto si prefieres refrescar solo parte de la UI
       });
     } catch (err) {
       console.error("❌ Error al importar:", err);
