@@ -97,23 +97,29 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
   inicializarGapi(() => {
     buscarArchivoExistente(nombreArchivo, (fileId) => {
       obtenerOCrearCarpetaBase("Basebiblia_editable", (folderId) => {
-        const isNuevo = !fileId;
-
-        const metadata = {
+        let metadata = {
           name: nombreArchivo,
           mimeType: "application/json"
         };
 
+        const isNuevo = !fileId;
+
         if (isNuevo) {
-          metadata.parents = [folderId]; // solo al crear
+          metadata.parents = [folderId]; // ✅ solo cuando se crea
         }
 
         const fileContent = new Blob([JSON.stringify(contenidoJSON, null, 2)], {
           type: "application/json"
         });
 
+        // ✅ importante: generar metadata limpio sin `parents` en PATCH
+        const metadataBlob = new Blob(
+          [JSON.stringify(metadata)],
+          { type: "application/json" }
+        );
+
         const form = new FormData();
-        form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+        form.append("metadata", metadataBlob);
         form.append("file", fileContent);
 
         const url = isNuevo
@@ -122,7 +128,9 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
 
         fetch(url, {
           method: isNuevo ? "POST" : "PATCH",
-          headers: new Headers({ Authorization: "Bearer " + accessToken }),
+          headers: new Headers({
+            Authorization: "Bearer " + accessToken
+          }),
           body: form
         })
           .then(async (res) => {
@@ -144,7 +152,6 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
     });
   });
 }
-
 
 
 function buscarArchivoExistente(nombreArchivo, callback) {
