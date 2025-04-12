@@ -388,8 +388,8 @@ function restaurarVersiculo() {
   const verso = parseInt(match[3], 10) - 1;
   const libro = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
   const claveCap = `${libro}_${cap}`;
-
   const url = fuentesRVR[libro];
+
   if (!url) {
     alert("No se encontró la fuente original para ese libro.");
     return;
@@ -403,7 +403,9 @@ function restaurarVersiculo() {
         return;
       }
 
-      // ❌ 1. Eliminar edición local
+      const textoOriginalVerso = data[cap][verso];
+
+      // 🧹 1. Eliminar edición local de ese verso
       const local = localStorage.getItem(claveCap);
       const edits = local ? JSON.parse(local) : {};
       delete edits[verso + 1];
@@ -413,29 +415,38 @@ function restaurarVersiculo() {
         localStorage.setItem(claveCap, JSON.stringify(edits));
       }
 
-      // ❌ 2. Eliminar versión en Google Drive si existe
+      // 🔁 2. Si hay sesión, actualiza ese verso en Drive (no borra todo el archivo)
       if (usuarioGoogle) {
         const nombreTexto = `BibliaEditable_${libro}_${cap + 1}.json`;
-        buscarArchivoExistente(nombreTexto, (fileId) => {
-          if (fileId) {
-            gapi.client.drive.files.delete({
-              fileId: fileId
-            }).then(() => {
-              console.log("✅ Archivo eliminado de Google Drive:", nombreTexto);
-            }).catch(err => {
-              console.warn("❌ No se pudo eliminar en Drive:", err);
-            });
+        cargarDesdeDrive(nombreTexto, (contenidoDrive) => {
+          if (contenidoDrive) {
+            delete contenidoDrive[verso + 1]; // elimina solo ese verso
+
+            // Si queda vacío, borra el archivo completo (opcional)
+            if (Object.keys(contenidoDrive).length === 0) {
+              buscarArchivoExistente(nombreTexto, (fileId) => {
+                if (fileId) {
+                  gapi.client.drive.files.delete({ fileId }).then(() => {
+                    console.log("✅ Se eliminó archivo vacío:", nombreTexto);
+                  }).catch(err => {
+                    console.warn("❌ No se pudo eliminar:", err);
+                  });
+                }
+              });
+            } else {
+              guardarCambiosEnDrive(nombreTexto, contenidoDrive);
+            }
           }
         });
       }
 
-      // ✅ 3. Si el capítulo está visible, actualizar solo ese versículo
+      // 🖥️ 3. Si el capítulo está visible, actualizar solo ese versículo
       if (libro === libroActual && cap === capituloActual) {
-        textoOriginal[cap][verso] = data[cap][verso];
+        textoOriginal[cap][verso] = textoOriginalVerso;
         mostrarVersiculo();
       }
 
-      alert("✅ Versículo restaurado desde Reina Valera y eliminado en Drive y Local.");
+      alert("✅ Versículo restaurado correctamente.");
     })
     .catch(err => {
       console.error("❌ Error al restaurar versículo:", err);
