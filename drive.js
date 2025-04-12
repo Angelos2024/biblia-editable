@@ -97,40 +97,31 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
   inicializarGapi(() => {
     buscarArchivoExistente(nombreArchivo, (fileId) => {
       obtenerOCrearCarpetaBase("Basebiblia_editable", (folderId) => {
-        let metadata = {
+        const metadata = {
           name: nombreArchivo,
           mimeType: "application/json"
         };
 
-        const isNuevo = !fileId;
-
-        if (isNuevo) {
-          metadata.parents = [folderId]; // ✅ solo cuando se crea
+        // Solo incluir 'parents' si es una creación de archivo
+        if (!fileId) {
+          metadata.parents = [folderId];
         }
 
         const fileContent = new Blob([JSON.stringify(contenidoJSON, null, 2)], {
           type: "application/json"
         });
 
-        // ✅ importante: generar metadata limpio sin `parents` en PATCH
-        const metadataBlob = new Blob(
-          [JSON.stringify(metadata)],
-          { type: "application/json" }
-        );
-
         const form = new FormData();
-        form.append("metadata", metadataBlob);
+        form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
         form.append("file", fileContent);
 
-        const url = isNuevo
-          ? "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id"
-          : `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id`;
+        const url = fileId
+          ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id`
+          : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id";
 
         fetch(url, {
-          method: isNuevo ? "POST" : "PATCH",
-          headers: new Headers({
-            Authorization: "Bearer " + accessToken
-          }),
+          method: fileId ? "PATCH" : "POST",
+          headers: new Headers({ Authorization: "Bearer " + accessToken }),
           body: form
         })
           .then(async (res) => {
