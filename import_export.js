@@ -129,3 +129,4 @@ async function importarVersion(file) {
 window.verificarContrasena = verificarContrasena;
 window.importarVersion = importarVersion;
 window.exportarVersion = exportarVersion;
+console.log("✅ import_export.js cargado correctamente");
