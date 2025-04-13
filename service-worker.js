@@ -1,9 +1,9 @@
 self.addEventListener("install", (e) => {
   e.waitUntil(
     (async () => {
-      const cache = await caches.open("biblia-cache-v1");
+      const cache = await caches.open("biblia-cache-v2");
       const archivos = [
-        "index.html",
+        "./index.html?homescreen=1",
         "app.js",
         "drive.js",
         "import_export.js",
