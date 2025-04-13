@@ -9,8 +9,7 @@ self.addEventListener("install", (e) => {
         "import_export.js",
         "notas.js",
         "icon-192.png",
-        "icon-512.png",
-        "style.css"
+        "icon-512.png"
       ];
 
       for (const archivo of archivos) {
