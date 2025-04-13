@@ -9,13 +9,15 @@ function aplicarNotasDesdeLocal() {
   document.querySelectorAll(".verse-word").forEach(span => {
     const clave = generarClaveNota(span);
     const nota = localStorage.getItem(clave);
-    if (nota) {
-      span.setAttribute("data-note", nota);
-      span.setAttribute("title", "📝 " + nota);
-    } else {
-      span.removeAttribute("data-note");
-      span.removeAttribute("title");
-    }
+if (nota && nota.trim() !== "") {
+  span.setAttribute("data-note", nota);
+  span.setAttribute("title", "📝 " + nota);
+  span.classList.add("con-nota");
+} else {
+  span.removeAttribute("data-note");
+  span.removeAttribute("title");
+  span.classList.remove("con-nota");
+}
   });
 }
 
