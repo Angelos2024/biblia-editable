@@ -1,1 +1,232 @@
-vthjyg
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biblia Editable</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f0f0;
+      padding-bottom: 100px;
+    }
+    header {
+      background-color: #0088cc;
+      color: white;
+      padding: 1rem;
+      position: relative;
+    }
+    .google-login {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #userAvatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: none;
+    }
+    #userMenu {
+      display: none;
+    }
+    .verse-word {
+      display: inline-block;
+      margin: 2px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #ffffff;
+      transition: background-color 0.2s;
+    }
+    .verse-word:hover {
+      background-color: #e0e0e0;
+    }
+    .verse-word.editing {
+      background-color: #fffae6;
+    }
+    .restore-btn {
+      font-size: 12px;
+      margin-left: 10px;
+      color: #007bff;
+      cursor: pointer;
+    }
+    .restore-btn:hover {
+      text-decoration: underline;
+    }
+    #saveCancelBar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #ffffff;
+      border-top: 1px solid #ccc;
+      display: none;
+      justify-content: space-around;
+      padding: 10px;
+      z-index: 1000;
+    }
+    .top-buttons {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .top-buttons button {
+      flex: 1 1 auto;
+      font-size: 0.85rem;
+      padding: 4px 8px;
+    }
+    .form-select {
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+  <div class="d-flex justify-content-between align-items-center">
+  <h1 class="m-0">Biblia Editable</h1>
+  <a href="https://angelos2024.github.io/productos/" class="btn btn-light btn-sm text-primary">
+    🛒 Verificador de Productos
+  </a>
+</div>
+
+ 
+
+    <div class="google-login">
+      <div id="googleSignInContainer">
+        <div id="g_id_onload"
+             data-client_id="197171923877-5qp8s2b35f83nqull98v5rs9er5ho34m.apps.googleusercontent.com"
+             data-context="signin"
+             data-ux_mode="popup"
+             data-callback="onSignIn"
+             data-auto_prompt="false"
+             data-auto_select="true"></div>
+
+        <div class="g_id_signin"
+             data-type="icon"
+             data-size="medium"
+             data-theme="filled_black"
+             data-shape="circle"
+             data-logo_alignment="center"></div>
+      </div>
+
+      <img id="userAvatar" src="" alt="Avatar">
+
+      <div id="userMenu" class="dropdown">
+        <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <span id="userName">Usuario</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+          <li><button class="dropdown-item" onclick="exportarVersion()">📤 Exportar mi versión</button></li>
+          <li>
+            <label class="dropdown-item" style="cursor: pointer;">
+              📥 Importar versión
+              <input type="file" accept=".zip" style="display:none" onchange="importarVersion(this.files[0])">
+            </label>
+          </li>
+          <li><button class="dropdown-item" onclick="cerrarSesion()">Cerrar sesión</button></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <div class="container mt-3">
+    <div class="top-buttons">
+      <input type="text" id="searchInput" class="form-control" placeholder="Ej: Juan 3:16 o palabra clave...">
+      <button class="btn btn-primary" onclick="buscarVersiculo()">Buscar</button>
+      <button class="btn btn-success" onclick="restaurarVersiculo()">Restaurar versículo</button>
+      <button class="btn btn-warning" onclick="reemplazoGlobal()">Reemplazo global</button>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-6">
+        <select id="libroSelect" class="form-select"></select>
+      </div>
+      <div class="col-6">
+        <select id="capituloSelect" class="form-select"></select>
+      </div>
+    </div>
+
+    <div id="topBar" class="d-flex gap-2 flex-wrap mb-3"></div>
+
+    <div id="resultados" class="bg-white p-3 rounded shadow-sm"></div>
+  </div>
+
+  <div id="saveCancelBar" class="d-flex">
+    <button class="btn btn-success" onclick="guardarCambios()">Guardar cambios</button>
+    <button class="btn btn-secondary" onclick="cancelarCambios()">Cancelar</button>
+  </div>
+
+  <div id="notaFlotante" style="display:none; position:fixed; z-index:2000; background:#fff; border:2px solid #ccc; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.3); width:90%; max-width:500px; padding:0; font-family: 'Segoe UI', sans-serif;">
+    <div id="notaHeader" style="padding:10px; background:#0088cc; color:#fff; cursor:move; border-top-left-radius:10px; border-top-right-radius:10px; font-weight:bold;">
+      📝 Nota para: <span id="palabraActual"></span>
+    </div>
+    <div style="padding:15px;">
+      <textarea id="notaInput" rows="10" class="form-control" style="width:100%; font-family:'Courier New', monospace;"></textarea>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:10px; padding:10px;">
+      <button id="cancelarNotaBtn" class="btn btn-secondary">Cancelar</button>
+      <button id="guardarNotaBtn" class="btn btn-success">Guardar</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+  <script src="https://apis.google.com/js/api.js" defer></script>
+  <script src="drive.js" defer></script>
+  <script src="import_export.js" defer></script>
+  <script src="app.js" defer></script>
+  <script src="notas.js" defer></script>
+
+  <script>
+    let usuarioGoogle = null;
+
+    const guardado = localStorage.getItem("usuarioGoogle");
+    if (guardado) {
+      usuarioGoogle = JSON.parse(guardado);
+      document.getElementById("userAvatar").src = usuarioGoogle.picture;
+      document.getElementById("userAvatar").style.display = "inline-block";
+      document.getElementById("googleSignInContainer").style.display = "none";
+      document.getElementById("userName").textContent = usuarioGoogle.name;
+      document.getElementById("userMenu").style.display = "inline-block";
+      console.log("✅ Sesión restaurada automáticamente:", usuarioGoogle);
+    }
+
+    function onSignIn(response) {
+      const credential = response.credential;
+      const payload = JSON.parse(atob(credential.split('.')[1]));
+      usuarioGoogle = payload;
+
+      localStorage.setItem("usuarioGoogle", JSON.stringify(payload));
+
+      alert(`Bienvenido ${payload.name}`);
+      console.log("Usuario autenticado:", payload);
+
+      document.getElementById("userAvatar").src = payload.picture;
+      document.getElementById("userAvatar").style.display = "inline-block";
+      document.getElementById("googleSignInContainer").style.display = "none";
+      document.getElementById("userName").textContent = payload.name;
+      document.getElementById("userMenu").style.display = "inline-block";
+    }
+
+    function cerrarSesion() {
+      google.accounts.id.disableAutoSelect();
+      usuarioGoogle = null;
+      localStorage.removeItem("usuarioGoogle");
+
+      document.getElementById("userAvatar").style.display = "none";
+      document.getElementById("googleSignInContainer").style.display = "block";
+      document.getElementById("userMenu").style.display = "none";
+      console.log("Usuario cerró sesión.");
+    }
+  </script>
+</body>
+</html>
