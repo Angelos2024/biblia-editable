@@ -29,3 +29,6 @@ self.addEventListener("fetch", (e) => {
     caches.match(e.request).then((r) => r || fetch(e.request))
   );
 });
+window.verificarContrasena = verificarContrasena;
+window.importarVersion = importarVersion;
+window.exportarVersion = exportarVersion;
