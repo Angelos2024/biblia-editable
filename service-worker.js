@@ -1,7 +1,8 @@
 self.addEventListener("install", (e) => {
   e.waitUntil(
-    caches.open("biblia-cache-v1").then((cache) => {
-      return cache.addAll([
+    (async () => {
+      const cache = await caches.open("biblia-cache-v1");
+      const archivos = [
         "index.html",
         "app.js",
         "drive.js",
@@ -10,8 +11,17 @@ self.addEventListener("install", (e) => {
         "icon-192.png",
         "icon-512.png",
         "style.css"
-      ]);
-    })
+      ];
+
+      for (const archivo of archivos) {
+        try {
+          await cache.add(archivo);
+          console.log("✅ Cacheado:", archivo);
+        } catch (err) {
+          console.warn("❌ No se pudo cachear:", archivo, err);
+        }
+      }
+    })()
   );
 });
 
