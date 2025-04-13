@@ -1,6 +1,6 @@
-// import_export.js – versión protegida con contraseña cifrada SHA-256
+// import_export.js – Versión protegida con contraseña SHA-256
 
-const HASH_PERMITIDO = "205a229d2a9f9467b1f4572b8e0c7eec6e9db2b301a3a1c5b37ddf3a76b3ab89"; // hash de "yehoshuamaranata"
+const HASH_PERMITIDO = "205a229d2a9f9467b1f4572b8e0c7eec6e9db2b301a3a1c5b37ddf3a76b3ab89"; // "yehoshuamaranata"
 
 async function verificarContrasena() {
   const clave = prompt("🔐 Introduce la contraseña:");
@@ -124,3 +124,8 @@ async function importarVersion(file) {
     }
   });
 }
+
+// Hacer accesibles las funciones desde HTML (menú usuario)
+window.verificarContrasena = verificarContrasena;
+window.importarVersion = importarVersion;
+window.exportarVersion = exportarVersion;
