@@ -1,8 +1,28 @@
-// import_export_v2.js – exportación/importación segura desde Drive (con validaciones y optimización)
+// import_export.js – versión protegida con contraseña cifrada SHA-256
+
+const HASH_PERMITIDO = "205a229d2a9f9467b1f4572b8e0c7eec6e9db2b301a3a1c5b37ddf3a76b3ab89"; // hash de "yehoshuamaranata"
+
+async function verificarContrasena() {
+  const clave = prompt("🔐 Introduce la contraseña:");
+  if (!clave) return false;
+
+  const encoder = new TextEncoder();
+  const data = encoder.encode(clave);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+  return hashHex === HASH_PERMITIDO;
+}
 
 async function exportarVersion() {
   if (!usuarioGoogle) {
     alert("Debes iniciar sesión con Google para exportar.");
+    return;
+  }
+
+  if (!await verificarContrasena()) {
+    alert("❌ Contraseña incorrecta.");
     return;
   }
 
@@ -47,6 +67,11 @@ async function importarVersion(file) {
     return;
   }
 
+  if (!await verificarContrasena()) {
+    alert("❌ Contraseña incorrecta.");
+    return;
+  }
+
   if (!confirm("⚠️ Esto borrará todos tus archivos actuales y los reemplazará por los del archivo. ¿Continuar?")) return;
 
   const zip = await JSZip.loadAsync(file);
@@ -55,7 +80,6 @@ async function importarVersion(file) {
   inicializarGapi(async () => {
     try {
       obtenerOCrearCarpetaBase("Basebiblia_editable", async (folderId) => {
-        // 🧹 Borrar todos los archivos dentro de la carpeta base
         const existentes = await gapi.client.drive.files.list({
           q: `'${folderId}' in parents and name contains 'BibliaEditable_' and mimeType='application/json' and trashed=false`,
           fields: "files(id, name)"
@@ -65,9 +89,7 @@ async function importarVersion(file) {
           await gapi.client.drive.files.delete({ fileId: file.id });
         }
 
-        // 📤 Subir nuevos archivos del .zip
         for (const nombre of archivos) {
-          // Validar nombre
           if (!nombre.startsWith("BibliaEditable_") || !nombre.endsWith(".json")) {
             console.warn("❌ Archivo ignorado por nombre inválido:", nombre);
             continue;
@@ -94,7 +116,7 @@ async function importarVersion(file) {
         }
 
         alert("✅ Versión importada y sincronizada con éxito.");
-        location.reload(); // puedes quitar esto si prefieres refrescar solo parte de la UI
+        location.reload();
       });
     } catch (err) {
       console.error("❌ Error al importar:", err);
