@@ -1,7 +1,7 @@
 {
   "name": "Biblia Editable",
   "short_name": "Biblia",
-  "start_url": "index.html",
+  "start_url": "./index.html?homescreen=1",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0088cc",
