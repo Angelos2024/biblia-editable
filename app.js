@@ -193,7 +193,8 @@ let libroActual = "";
 let capituloActual = 0;
 let versiculoActual = null;
 
-function poblarDropdowns() {
+function poblarDropdowns(callback) {
+
   const libroSelect = document.getElementById("libroSelect");
   const capituloSelect = document.getElementById("capituloSelect");
   if (!libroSelect || !capituloSelect) return;
@@ -230,6 +231,8 @@ function poblarDropdowns() {
       buscarVersiculo();
     }
   });
+  
+if (callback) callback(); // ✅ al terminar de construir todo
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -254,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  poblarDropdowns();
+ poblarDropdowns(() => {
   const ultima = localStorage.getItem("ultima_posicion");
   if (ultima) {
     try {
@@ -271,11 +274,8 @@ document.addEventListener("DOMContentLoaded", () => {
       console.warn("❌ No se pudo restaurar la última posición:", e);
     }
   }
-
-  document.getElementById("searchInput").addEventListener("keypress", function (e) {
-    if (e.key === "Enter") buscarVersiculo();
-  });
 });
+
 
 function buscarVersiculo() {
   const entrada = document.getElementById("searchInput").value.trim();
