@@ -255,6 +255,22 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   poblarDropdowns();
+  const ultima = localStorage.getItem("ultima_posicion");
+  if (ultima) {
+    try {
+      const { libro, capitulo, versiculo } = JSON.parse(ultima);
+      if (libro && typeof capitulo === 'number') {
+        libroActual = libro;
+        capituloActual = capitulo;
+        versiculoActual = versiculo;
+
+        document.getElementById("searchInput").value = `${libro} ${capitulo + 1}${versiculo !== null ? ':' + (versiculo + 1) : ''}`;
+        buscarVersiculo();
+      }
+    } catch (e) {
+      console.warn("❌ No se pudo restaurar la última posición:", e);
+    }
+  }
 
   document.getElementById("searchInput").addEventListener("keypress", function (e) {
     if (e.key === "Enter") buscarVersiculo();
@@ -274,6 +290,13 @@ function buscarVersiculo() {
   capituloActual = parseInt(match[2], 10) - 1;
   versiculoActual = match[3] ? parseInt(match[3], 10) - 1 : null;
   libroActual = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
+  // Guardar última posición
+localStorage.setItem("ultima_posicion", JSON.stringify({
+  libro: libroActual,
+  capitulo: capituloActual,
+  versiculo: versiculoActual
+}));
+
 
   const claveLocal = `global_${libroActual}`;
   const claveCap = `${libroActual}_${capituloActual}`;
