@@ -236,7 +236,7 @@ if (callback) callback(); // ✅ al terminar de construir todo
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 🔄 Al iniciar sesión con Google, sincronizar automáticamente el capítulo actual si existe
+  // 🔄 Al iniciar sesión con Google, sincronizar automáticamente el capítulo actual si existe
   if (typeof usuarioGoogle !== 'undefined' && usuarioGoogle && libroActual && textoOriginal.length > 0) {
     const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
     const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
@@ -257,42 +257,43 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
- poblarDropdowns(() => {
- const ultima = localStorage.getItem("ultima_posicion");
-if (ultima) {
-  try {
-    const { libro, capitulo, versiculo } = JSON.parse(ultima);
-    if (libro && typeof capitulo === 'number') {
-      libroActual = libro;
-      capituloActual = capitulo;
-      versiculoActual = versiculo;
+  poblarDropdowns(() => {
+    const ultima = localStorage.getItem("ultima_posicion");
+    if (ultima) {
+      try {
+        const { libro, capitulo, versiculo } = JSON.parse(ultima);
+        if (libro && typeof capitulo === 'number') {
+          libroActual = libro;
+          capituloActual = capitulo;
+          versiculoActual = versiculo;
 
-      document.getElementById("searchInput").value = `${libro} ${capitulo + 1}${versiculo !== null ? ':' + (versiculo + 1) : ''}`;
+          document.getElementById("searchInput").value = `${libro} ${capitulo + 1}${versiculo !== null ? ':' + (versiculo + 1) : ''}`;
 
-      fetch(fuentesRVR[libro])
-        .then(r => r.json())
-        .then(data => {
-          const capituloSelect = document.getElementById("capituloSelect");
-          capituloSelect.innerHTML = "<option value=''>Capítulo</option>";
-          data.forEach((_, i) => {
-            const opt = document.createElement("option");
-            opt.value = i + 1;
-            opt.textContent = `Capítulo ${i + 1}`;
-            capituloSelect.appendChild(opt);
-          });
+          fetch(fuentesRVR[libro])
+            .then(r => r.json())
+            .then(data => {
+              const capituloSelect = document.getElementById("capituloSelect");
+              capituloSelect.innerHTML = "<option value=''>Capítulo</option>";
+              data.forEach((_, i) => {
+                const opt = document.createElement("option");
+                opt.value = i + 1;
+                opt.textContent = `Capítulo ${i + 1}`;
+                capituloSelect.appendChild(opt);
+              });
 
-          // Establecer valores en los <select>
-          document.getElementById("libroSelect").value = libro;
-          capituloSelect.value = capitulo + 1;
+              // Establecer valores en los <select>
+              document.getElementById("libroSelect").value = libro;
+              capituloSelect.value = capitulo + 1;
 
-          buscarVersiculo();
-        });
+              buscarVersiculo();
+            });
+        }
+      } catch (e) {
+        console.warn("❌ No se pudo restaurar la última posición:", e);
+      }
     }
-  } catch (e) {
-    console.warn("❌ No se pudo restaurar la última posición:", e);
-  }
-}
-});
+  });
+}); // ✅ cierre correcto
 
 
 function buscarVersiculo() {
