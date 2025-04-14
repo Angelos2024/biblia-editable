@@ -127,8 +127,58 @@ Object.assign(aliasLibros, {
 
   // Apocalipsis
   "apo": "Apocalipsis",
-  "ap": "Apocalipsis"
+  "ap": "Apocalipsis",
+
+  // Pentateuco
+  "gen": "Génesis",
+  "ex": "Éxodo",
+  "lev": "Levítico",
+  "num": "Números",
+  "deut": "Deuteronomio",
+
+  // Históricos
+  "jos": "Josué",
+  "jue": "Jueces",
+  "rt": "Rut",
+  "1sa": "1 Samuel",
+  "2sa": "2 Samuel",
+  "1re": "1 Reyes",
+  "2re": "2 Reyes",
+  "1cr": "1 Crónicas",
+  "2cr": "2 Crónicas",
+  "esd": "Esdras",
+  "neh": "Nehemías",
+  "est": "Ester",
+
+  // Poéticos y sapienciales
+  "job": "Job",
+  "sal": "Salmos",
+  "prov": "Proverbios",
+  "ecc": "Eclesiastés",
+  "cnt": "Cantares",
+
+  // Profetas mayores
+  "isa": "Isaías",
+  "jer": "Jeremías",
+  "lam": "Lamentaciones",
+  "ez": "Ezequiel",
+  "dan": "Daniel",
+
+  // Profetas menores
+  "os": "Oseas",
+  "jl": "Joel",
+  "am": "Amós",
+  "abd": "Abdías",
+  "jon": "Jonás",
+  "miq": "Miqueas",
+  "nah": "Nahúm",
+  "hab": "Habacuc",
+  "sof": "Sofonías",
+  "hag": "Hageo",
+  "zac": "Zacarías",
+  "mal": "Malaquías"
 });
+
 
 
 console.log("Alias generados:", aliasLibros);
