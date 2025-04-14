@@ -127,58 +127,8 @@ Object.assign(aliasLibros, {
 
   // Apocalipsis
   "apo": "Apocalipsis",
-  "ap": "Apocalipsis",
-
-  // Pentateuco
-  "gen": "Génesis",
-  "ex": "Éxodo",
-  "lev": "Levítico",
-  "num": "Números",
-  "deut": "Deuteronomio",
-
-  // Históricos
-  "jos": "Josué",
-  "jue": "Jueces",
-  "rt": "Rut",
-  "1sa": "1 Samuel",
-  "2sa": "2 Samuel",
-  "1re": "1 Reyes",
-  "2re": "2 Reyes",
-  "1cr": "1 Crónicas",
-  "2cr": "2 Crónicas",
-  "esd": "Esdras",
-  "neh": "Nehemías",
-  "est": "Ester",
-
-  // Poéticos y sapienciales
-  "job": "Job",
-  "sal": "Salmos",
-  "prov": "Proverbios",
-  "ecc": "Eclesiastés",
-  "cnt": "Cantares",
-
-  // Profetas mayores
-  "isa": "Isaías",
-  "jer": "Jeremías",
-  "lam": "Lamentaciones",
-  "ez": "Ezequiel",
-  "dan": "Daniel",
-
-  // Profetas menores
-  "os": "Oseas",
-  "jl": "Joel",
-  "am": "Amós",
-  "abd": "Abdías",
-  "jon": "Jonás",
-  "miq": "Miqueas",
-  "nah": "Nahúm",
-  "hab": "Habacuc",
-  "sof": "Sofonías",
-  "hag": "Hageo",
-  "zac": "Zacarías",
-  "mal": "Malaquías"
+  "ap": "Apocalipsis"
 });
-
 
 
 console.log("Alias generados:", aliasLibros);
@@ -193,8 +143,7 @@ let libroActual = "";
 let capituloActual = 0;
 let versiculoActual = null;
 
-function poblarDropdowns(callback) {
-
+function poblarDropdowns() {
   const libroSelect = document.getElementById("libroSelect");
   const capituloSelect = document.getElementById("capituloSelect");
   if (!libroSelect || !capituloSelect) return;
@@ -231,12 +180,10 @@ function poblarDropdowns(callback) {
       buscarVersiculo();
     }
   });
-  
-if (callback) callback(); // ✅ al terminar de construir todo
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 🔄 Al iniciar sesión con Google, sincronizar automáticamente el capítulo actual si existe
+    // 🔄 Al iniciar sesión con Google, sincronizar automáticamente el capítulo actual si existe
   if (typeof usuarioGoogle !== 'undefined' && usuarioGoogle && libroActual && textoOriginal.length > 0) {
     const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
     const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
@@ -257,44 +204,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  poblarDropdowns(() => {
-    const ultima = localStorage.getItem("ultima_posicion");
-    if (ultima) {
-      try {
-        const { libro, capitulo, versiculo } = JSON.parse(ultima);
-        if (libro && typeof capitulo === 'number') {
-          libroActual = libro;
-          capituloActual = capitulo;
-          versiculoActual = versiculo;
+  poblarDropdowns();
 
-          document.getElementById("searchInput").value = `${libro} ${capitulo + 1}${versiculo !== null ? ':' + (versiculo + 1) : ''}`;
-
-          fetch(fuentesRVR[libro])
-            .then(r => r.json())
-            .then(data => {
-              const capituloSelect = document.getElementById("capituloSelect");
-              capituloSelect.innerHTML = "<option value=''>Capítulo</option>";
-              data.forEach((_, i) => {
-                const opt = document.createElement("option");
-                opt.value = i + 1;
-                opt.textContent = `Capítulo ${i + 1}`;
-                capituloSelect.appendChild(opt);
-              });
-
-              // Establecer valores en los <select>
-              document.getElementById("libroSelect").value = libro;
-              capituloSelect.value = capitulo + 1;
-
-              buscarVersiculo();
-            });
-        }
-      } catch (e) {
-        console.warn("❌ No se pudo restaurar la última posición:", e);
-      }
-    }
+  document.getElementById("searchInput").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") buscarVersiculo();
   });
-}); // ✅ cierre correcto
-
+});
 
 function buscarVersiculo() {
   const entrada = document.getElementById("searchInput").value.trim();
@@ -309,13 +224,6 @@ function buscarVersiculo() {
   capituloActual = parseInt(match[2], 10) - 1;
   versiculoActual = match[3] ? parseInt(match[3], 10) - 1 : null;
   libroActual = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
-  // Guardar última posición
-localStorage.setItem("ultima_posicion", JSON.stringify({
-  libro: libroActual,
-  capitulo: capituloActual,
-  versiculo: versiculoActual
-}));
-
 
   const claveLocal = `global_${libroActual}`;
   const claveCap = `${libroActual}_${capituloActual}`;
