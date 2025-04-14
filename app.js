@@ -258,22 +258,40 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
  poblarDropdowns(() => {
-  const ultima = localStorage.getItem("ultima_posicion");
-  if (ultima) {
-    try {
-      const { libro, capitulo, versiculo } = JSON.parse(ultima);
-      if (libro && typeof capitulo === 'number') {
-        libroActual = libro;
-        capituloActual = capitulo;
-        versiculoActual = versiculo;
+ const ultima = localStorage.getItem("ultima_posicion");
+if (ultima) {
+  try {
+    const { libro, capitulo, versiculo } = JSON.parse(ultima);
+    if (libro && typeof capitulo === 'number') {
+      libroActual = libro;
+      capituloActual = capitulo;
+      versiculoActual = versiculo;
 
-        document.getElementById("searchInput").value = `${libro} ${capitulo + 1}${versiculo !== null ? ':' + (versiculo + 1) : ''}`;
-        buscarVersiculo();
-      }
-    } catch (e) {
-      console.warn("❌ No se pudo restaurar la última posición:", e);
+      document.getElementById("searchInput").value = `${libro} ${capitulo + 1}${versiculo !== null ? ':' + (versiculo + 1) : ''}`;
+
+      fetch(fuentesRVR[libro])
+        .then(r => r.json())
+        .then(data => {
+          const capituloSelect = document.getElementById("capituloSelect");
+          capituloSelect.innerHTML = "<option value=''>Capítulo</option>";
+          data.forEach((_, i) => {
+            const opt = document.createElement("option");
+            opt.value = i + 1;
+            opt.textContent = `Capítulo ${i + 1}`;
+            capituloSelect.appendChild(opt);
+          });
+
+          // Establecer valores en los <select>
+          document.getElementById("libroSelect").value = libro;
+          capituloSelect.value = capitulo + 1;
+
+          buscarVersiculo();
+        });
     }
+  } catch (e) {
+    console.warn("❌ No se pudo restaurar la última posición:", e);
   }
+}
 });
 
 
