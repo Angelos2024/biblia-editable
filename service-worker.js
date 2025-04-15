@@ -1,17 +1,17 @@
+
 self.addEventListener("install", (e) => {
   e.waitUntil(
     (async () => {
       const cache = await caches.open("biblia-cache-v2");
-     const archivos = [
-  "./index.html", // ✅ así sí es cacheable
-  "app.js",
-  "drive.js",
-  "import_export.js",
-  "notas.js",
-  "icon-192.png",
-  "icon-512.png"
-];
-
+      const archivos = [
+        "./index.html",  // ✅ Corrección: sin ?homescreen=1
+        "app.js",
+        "drive.js",
+        "import_export.js",
+        "notas.js",
+        "icon-192.png",
+        "icon-512.png"
+      ];
 
       for (const archivo of archivos) {
         try {
