@@ -310,7 +310,28 @@ function mostrarVersiculo() {
   } else {
     capitulo.forEach((texto, idx) => renderizarVersiculo(texto, idx + 1));
   }
+
+  // 🔁 Cargar notas desde Drive si hay sesión y estamos en un capítulo válido
+  if (usuarioGoogle && libroActual && typeof capituloActual !== "undefined") {
+    const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
+    cargarNotasDesdeDrive(nombreNotas, (notasDrive) => {
+      if (notasDrive) {
+        for (let clave in notasDrive) {
+          localStorage.setItem(clave, notasDrive[clave]);
+        }
+        if (typeof aplicarNotasDesdeLocal === "function") {
+          aplicarNotasDesdeLocal();
+        }
+      }
+    });
+  } else {
+    // Si no hay sesión, igual aplicamos notas locales si existen
+    if (typeof aplicarNotasDesdeLocal === "function") {
+      aplicarNotasDesdeLocal();
+    }
+  }
 }
+
 
 function renderizarVersiculo(texto, numero) {
   const contenedor = document.getElementById("resultados");
