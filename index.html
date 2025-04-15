@@ -1,3 +1,4 @@
+
 <!DOCTYPE html> 
 <html lang="es">
 <head>
@@ -19,10 +20,9 @@
       position: relative;
     }
     .verse-word.con-nota {
-  border-bottom: 2px dotted #ff9800;
-  background-color: #fff8e1;
-}
-
+      border-bottom: 2px dotted #ff9800;
+      background-color: #fff8e1;
+    }
     .google-login {
       position: absolute;
       top: 10px;
@@ -101,7 +101,6 @@
         🛒 Verificador de Productos
       </a>
     </div>
-
     <div class="google-login">
       <div id="googleSignInContainer">
         <div id="g_id_onload"
@@ -111,7 +110,6 @@
              data-callback="onSignIn"
              data-auto_prompt="false"
              data-auto_select="true"></div>
-
         <div class="g_id_signin"
              data-type="icon"
              data-size="medium"
@@ -119,9 +117,7 @@
              data-shape="circle"
              data-logo_alignment="center"></div>
       </div>
-
       <img id="userAvatar" src="" alt="Avatar">
-
       <div id="userMenu" class="dropdown">
         <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
           <span id="userName">Usuario</span>
@@ -147,7 +143,6 @@
       <button class="btn btn-success" onclick="restaurarVersiculo()">Restaurar versículo</button>
       <button class="btn btn-warning" onclick="reemplazoGlobal()">Reemplazo global</button>
     </div>
-
     <div class="row mb-3">
       <div class="col-6">
         <select id="libroSelect" class="form-select"></select>
@@ -156,9 +151,7 @@
         <select id="capituloSelect" class="form-select"></select>
       </div>
     </div>
-
     <div id="topBar" class="d-flex gap-2 flex-wrap mb-3"></div>
-
     <div id="resultados" class="bg-white p-3 rounded shadow-sm"></div>
   </div>
 
@@ -188,7 +181,6 @@
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js');
-
     }
   </script>
 
@@ -197,10 +189,8 @@
   <script src="app.js" defer></script>
   <script src="notas.js" defer></script>
 
-  <!-- Restaurar sesión e iniciar -->
   <script>
     let usuarioGoogle = null;
-
     const guardado = localStorage.getItem("usuarioGoogle");
     if (guardado) {
       usuarioGoogle = JSON.parse(guardado);
@@ -209,6 +199,9 @@
       document.getElementById("googleSignInContainer").style.display = "none";
       document.getElementById("userName").textContent = usuarioGoogle.name;
       document.getElementById("userMenu").style.display = "inline-block";
+      if (typeof inicializarGapi === "function") {
+        inicializarGapi(() => console.log("🔁 GAPI inicializado tras restaurar sesión"));
+      }
       console.log("✅ Sesión restaurada automáticamente:", usuarioGoogle);
     }
 
@@ -216,31 +209,29 @@
       const credential = response.credential;
       const payload = JSON.parse(atob(credential.split('.')[1]));
       usuarioGoogle = payload;
-
       localStorage.setItem("usuarioGoogle", JSON.stringify(payload));
-
       alert(`Bienvenido ${payload.name}`);
       console.log("Usuario autenticado:", payload);
-
       document.getElementById("userAvatar").src = payload.picture;
       document.getElementById("userAvatar").style.display = "inline-block";
       document.getElementById("googleSignInContainer").style.display = "none";
       document.getElementById("userName").textContent = payload.name;
       document.getElementById("userMenu").style.display = "inline-block";
+      if (typeof inicializarGapi === "function") {
+        inicializarGapi(() => console.log("🔑 GAPI inicializado tras login"));
+      }
     }
 
     function cerrarSesion() {
       google.accounts.id.disableAutoSelect();
       usuarioGoogle = null;
       localStorage.removeItem("usuarioGoogle");
-
       document.getElementById("userAvatar").style.display = "none";
       document.getElementById("googleSignInContainer").style.display = "block";
       document.getElementById("userMenu").style.display = "none";
       console.log("Usuario cerró sesión.");
     }
 
-    // ✅ NUEVO: envoltorio seguro para importar
     async function handleImportarArchivo(file) {
       if (!file) return;
       if (typeof importarVersion === "function") {
