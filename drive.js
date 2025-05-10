@@ -4,6 +4,20 @@ let gapiInitialized = false;
 let accessToken = sessionStorage.getItem("drive_token") || null;
 let tokenClient = null;
 
+
+
+function esperarGoogle(callback, intentos = 0) {
+  if (typeof google !== "undefined" && google.accounts && google.accounts.oauth2) {
+    callback();
+  } else if (intentos < 50) {
+    setTimeout(() => esperarGoogle(callback, intentos + 1), 100);
+  } else {
+    console.error("❌ Google Identity Services no cargó.");
+    alert("❌ No se pudo cargar Google Identity Services.");
+  }
+}
+
+
 function inicializarGapi(callback) {
   // ⏳ Esperar a que el objeto 'google' de Google Identity Services esté disponible
   if (typeof google === "undefined" || !google.accounts || !google.accounts.oauth2) {
@@ -72,7 +86,7 @@ function inicializarGapi(callback) {
 
 
 function obtenerOCrearCarpetaBase(nombreCarpeta, callback) {
-  inicializarGapi(() => {
+esperarGoogle(() => inicializarGapi(() => {
     gapi.client.drive.files.list({
       q: `name='${nombreCarpeta}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
       fields: "files(id, name)"
@@ -93,7 +107,7 @@ function obtenerOCrearCarpetaBase(nombreCarpeta, callback) {
         });
       }
     });
-  });
+  }));
 }
 
 function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
@@ -102,7 +116,7 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
     return;
   }
 
-  inicializarGapi(() => {
+  esperarGoogle(() => inicializarGapi(() => {
     buscarArchivoExistente(nombreArchivo, (fileId) => {
       obtenerOCrearCarpetaBase("Basebiblia_editable", (folderId) => {
         const metadata = {
@@ -141,7 +155,7 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
           })
           .then((data) => {
             console.log("✅ Archivo guardado en Drive:", data);
-            alert("✅ Cambios sincronizados en Google Drive.");
+           
           })
           .catch((err) => {
             console.error("❌ Error al guardar en Drive:", err);
@@ -149,7 +163,7 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
           });
       });
     });
-  });
+ }));
 }
 
 
@@ -183,7 +197,7 @@ function cargarDesdeDrive(nombreArchivo, callback) {
     return;
   }
 
-  inicializarGapi(() => {
+  esperarGoogle(() => inicializarGapi(() => {
     buscarArchivoExistente(nombreArchivo, (fileId) => {
       if (!fileId) {
         callback(null);
@@ -206,11 +220,11 @@ function cargarDesdeDrive(nombreArchivo, callback) {
         callback(null);
       });
     });
-  });
+  }));
 }
 
 function listarArchivosBibliaEditable(callback) {
-  inicializarGapi(() => {
+esperarGoogle(() => inicializarGapi(() => {
     gapi.client.drive.files.list({
       q: "name contains 'BibliaEditable_' and mimeType='application/json' and trashed=false",
       fields: "files(id, name, modifiedTime)",
@@ -222,7 +236,7 @@ function listarArchivosBibliaEditable(callback) {
       console.error("❌ No se pudieron listar archivos:", err);
       callback([]);
     });
-  });
+ }));
 }
 
 function guardarNotasEnDrive(nombreArchivo, notasJSON) {
