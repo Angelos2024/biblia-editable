@@ -225,69 +225,69 @@ function buscarVersiculo() {
   versiculoActual = match[3] ? parseInt(match[3], 10) - 1 : null;
   libroActual = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
 
-  const claveLocal = `global_${libroActual}`;
   const claveCap = `${libroActual}_${capituloActual}`;
-  const localGlobal = localStorage.getItem(claveLocal);
-  const localCap = localStorage.getItem(claveCap);
-
+  const claveGlobal = `global_${libroActual}`;
   const url = fuentesRVR[libroActual];
+
   if (!url) {
     alert("Libro no disponible todavía.");
     return;
   }
 
- // Limpiar estado anterior para evitar errores de mezcla
   textoOriginal = [];
   textoEditado = {};
   document.getElementById("resultados").innerHTML = "<p class='text-muted'>⏳ Cargando capítulo...</p>";
 
- fetch(url)
-  .then(res => res.json())
-.then(data => {
-  textoOriginal = data;
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      textoOriginal = data;
 
-  const claveGlobal = `global_${libroActual}`;
-  const datosGlobales = localStorage.getItem(claveGlobal);
-  if (datosGlobales) {
-    try {
-      const reemplazo = JSON.parse(datosGlobales);
-      if (reemplazo?.length === textoOriginal.length) {
-        textoOriginal = reemplazo;
-      }
-    } catch (e) {
-      console.warn("❌ Error al parsear reemplazo global:", e);
-    }
-  }
-
-  const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
-  const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
-
-    cargarDesdeDrive(nombreTexto, (contenidoDrive) => {
-      const localCap = localStorage.getItem(`${libroActual}_${capituloActual}`);
-
-      if (contenidoDrive) {
-        for (const verso in contenidoDrive) {
-          const idx = parseInt(verso) - 1;
-          if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
-            textoOriginal[capituloActual][idx] = contenidoDrive[verso];
+      cargarDesdeDrive(`BibliaEditable_${libroActual}_${capituloActual + 1}.json`, (contenidoDrive) => {
+        if (contenidoDrive) {
+          for (const verso in contenidoDrive) {
+            const idx = parseInt(verso) - 1;
+            if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+              textoOriginal[capituloActual][idx] = contenidoDrive[verso];
+            }
+          }
+        } else {
+          const localCap = localStorage.getItem(claveCap);
+          if (localCap) {
+            const override = JSON.parse(localCap);
+            for (const verso in override) {
+              const idx = parseInt(verso) - 1;
+              if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+                textoOriginal[capituloActual][idx] = override[verso];
+              }
+            }
+          } else {
+            // Solo si no hay Drive ni local, aplicar global
+            const datosGlobales = localStorage.getItem(claveGlobal);
+            if (datosGlobales) {
+              try {
+                const reemplazo = JSON.parse(datosGlobales);
+                if (reemplazo?.length === textoOriginal.length) {
+                  textoOriginal = reemplazo;
+                }
+              } catch (e) {
+                console.warn("❌ Error al parsear reemplazo global:", e);
+              }
+            }
           }
         }
-      }
 
-      if (localCap) {
-        const override = JSON.parse(localCap);
-        for (const verso in override) {
-          const idx = parseInt(verso) - 1;
-          if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
-            textoOriginal[capituloActual][idx] = override[verso];
-          }
-        }
-      }
+        mostrarVersiculo();
+      });
+    })
+    .catch(err => {
+      console.error("❌ Error al cargar capítulo:", err);
+      alert("❌ No se pudo cargar el capítulo.");
+    });
+}
 
-      mostrarVersiculo();
-    }); 
-  });  
-}       
+
+    
 
 function mostrarVersiculo() {
   const output = document.getElementById("resultados");
