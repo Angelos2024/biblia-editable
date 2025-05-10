@@ -400,35 +400,66 @@ function cancelarCambios() {
   buscarVersiculo();
 }
 
-function reemplazoGlobal() {
+async function reemplazoGlobal() {
   const desde = prompt("Palabra a reemplazar (sensible a mayúsculas):");
   const hasta = prompt("Nueva palabra:");
 
   if (!desde || !hasta) return;
 
-  Object.keys(fuentesRVR).forEach(libro => {
+  const libros = Object.keys(fuentesRVR);
+  const total = libros.length;
+  let completados = 0;
+
+  // Mostrar barra inicial
+  const contenedor = document.getElementById("resultados");
+  contenedor.innerHTML = `
+    <p class='text-muted'>🔄 Reemplazando globalmente: <strong>${desde}</strong> → <strong>${hasta}</strong></p>
+    <div id="barraProgreso" style="width:100%;background:#ddd;border-radius:5px;overflow:hidden;height:20px;">
+      <div id="progresoInterno" style="width:0%;height:100%;background:#4caf50;text-align:center;color:white;font-size:12px;">0%</div>
+    </div>
+    <ul id="progresoLista" style="font-size:0.85rem;line-height:1.4;margin-top:10px;"></ul>
+  `;
+
+  const progresoInterno = document.getElementById("progresoInterno");
+  const progresoLista = document.getElementById("progresoLista");
+
+  const promesas = libros.map(async (libro) => {
     const url = fuentesRVR[libro];
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        const textoModificado = data.map(capitulo =>
-          capitulo.map(verso =>
-            verso.replace(new RegExp(`\\b${desde}\\b`, 'g'), hasta)
-          )
-        );
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
 
-        // Guardar en local
-        localStorage.setItem(`global_${libro}`, JSON.stringify(textoModificado));
+      const textoModificado = data.map(capitulo =>
+        capitulo.map(verso =>
+          verso.replace(new RegExp(`\\b${desde}\\b`, 'g'), hasta)
+        )
+      );
 
-        // Si hay sesión, subir a Google Drive
-        if (usuarioGoogle) {
-          const nombreTexto = `BibliaEditable_${libro}_global.json`;
-          guardarCambiosEnDrive(nombreTexto, textoModificado);
-        }
-      });
+      localStorage.setItem(`global_${libro}`, JSON.stringify(textoModificado));
+
+      if (usuarioGoogle) {
+        const nombreTexto = `BibliaEditable_${libro}_global.json`;
+        await guardarCambiosEnDrive(nombreTexto, textoModificado);
+      }
+
+      progresoLista.innerHTML += `<li>✅ ${libro} procesado</li>`;
+    } catch (e) {
+      console.error(`❌ Error procesando ${libro}:`, e);
+      progresoLista.innerHTML += `<li style="color:red;">❌ Error en ${libro}</li>`;
+    }
+
+    // Actualizar barra
+    completados++;
+    const porcentaje = Math.round((completados / total) * 100);
+    progresoInterno.style.width = `${porcentaje}%`;
+    progresoInterno.innerText = `${porcentaje}%`;
   });
 
-  alert(`✅ Reemplazo global de "${desde}" por "${hasta}" completado y sincronizado.`);
+  await Promise.all(promesas);
+
+  progresoInterno.style.background = "#2196F3";
+  progresoInterno.innerText = "100%";
+  progresoLista.innerHTML += `<li><strong>✅ Reemplazo global finalizado correctamente.</strong></li>`;
 }
 
 
