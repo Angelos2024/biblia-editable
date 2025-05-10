@@ -5,6 +5,13 @@ let accessToken = sessionStorage.getItem("drive_token") || null;
 let tokenClient = null;
 
 function inicializarGapi(callback) {
+  // ⏳ Esperar a que el objeto 'google' de Google Identity Services esté disponible
+  if (typeof google === "undefined" || !google.accounts || !google.accounts.oauth2) {
+    console.warn("⏳ Esperando a que Google Identity Services cargue...");
+    setTimeout(() => inicializarGapi(callback), 100); // Reintenta cada 100ms
+    return;
+  }
+
   if (accessToken) {
     if (!gapiInitialized) {
       gapi.load('client', async () => {
@@ -62,6 +69,7 @@ function inicializarGapi(callback) {
     alert("❌ Ocurrió un problema al iniciar sesión en Google.");
   }
 }
+
 
 function obtenerOCrearCarpetaBase(nombreCarpeta, callback) {
   inicializarGapi(() => {
