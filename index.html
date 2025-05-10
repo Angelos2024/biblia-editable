@@ -207,21 +207,32 @@
     }
 
     function onSignIn(response) {
-      const credential = response.credential;
-      const payload = JSON.parse(atob(credential.split('.')[1]));
-      usuarioGoogle = payload;
-      localStorage.setItem("usuarioGoogle", JSON.stringify(payload));
-      alert(`Bienvenido ${payload.name}`);
-      console.log("Usuario autenticado:", payload);
-      document.getElementById("userAvatar").src = payload.picture;
-      document.getElementById("userAvatar").style.display = "inline-block";
-      document.getElementById("googleSignInContainer").style.display = "none";
-      document.getElementById("userName").textContent = payload.name;
-      document.getElementById("userMenu").style.display = "inline-block";
-      if (typeof inicializarGapi === "function") {
-        inicializarGapi(() => console.log("🔑 GAPI inicializado tras login"));
-      }
-    }
+  // 🔐 Esperar a que Google Identity Services esté listo
+  if (typeof google === "undefined" || !google.accounts || !google.accounts.oauth2) {
+    console.warn("⏳ GIS aún no cargado, reintentando onSignIn...");
+    setTimeout(() => onSignIn(response), 100);
+    return;
+  }
+
+  const credential = response.credential;
+  const payload = JSON.parse(atob(credential.split('.')[1]));
+  usuarioGoogle = payload;
+  localStorage.setItem("usuarioGoogle", JSON.stringify(payload));
+
+  alert(`Bienvenido ${payload.name}`);
+  console.log("Usuario autenticado:", payload);
+
+  document.getElementById("userAvatar").src = payload.picture;
+  document.getElementById("userAvatar").style.display = "inline-block";
+  document.getElementById("googleSignInContainer").style.display = "none";
+  document.getElementById("userName").textContent = payload.name;
+  document.getElementById("userMenu").style.display = "inline-block";
+
+  if (typeof inicializarGapi === "function") {
+    inicializarGapi(() => console.log("🔑 GAPI inicializado tras login"));
+  }
+}
+
 
     function cerrarSesion() {
       google.accounts.id.disableAutoSelect();
