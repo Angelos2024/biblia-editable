@@ -423,7 +423,7 @@ function reemplazoGlobal() {
         // Si hay sesión, subir a Google Drive
         if (usuarioGoogle) {
           const nombreTexto = `BibliaEditable_${libro}_global.json`;
-          guardarCambiosEnDrive(nombreTexto, textoModificado);
+          guardarCambiosEnDrive(nombreTexto, textoModificado, false);
         }
       });
   });
