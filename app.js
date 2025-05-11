@@ -1,5 +1,6 @@
 // app.js
 
+
 const fuentesRVR = {
   "Génesis": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/genesis.json",
   "Éxodo": "https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/biblia/exodo.json",
@@ -76,6 +77,16 @@ const librosOrdenados = Object.keys(fuentesRVR).sort((a, b) => {
   if (!numA && numB) return -1;
   return 0;
 });
+
+function normalizarTexto(texto) {
+  return texto
+    .normalize("NFD") // separa letras y tildes
+    .replace(/[\u0300-\u036f]/g, "") // elimina los signos diacríticos
+    .toLowerCase()
+    .replace(/\s+/g, "") // quita espacios
+    .replace(/\./g, ""); // quita puntos si alguien pone "1. samuel"
+}
+
 
 const aliasLibros = {};
 librosOrdenados.forEach(libro => {
@@ -223,7 +234,9 @@ function buscarVersiculo() {
   let libroEntrada = match[1];
   capituloActual = parseInt(match[2], 10) - 1;
   versiculoActual = match[3] ? parseInt(match[3], 10) - 1 : null;
-  libroActual = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
+ const normalizado = normalizarTexto(libroEntrada);
+libroActual = aliasLibros[normalizado] || libroEntrada;
+
 
   const claveLocal = `global_${libroActual}`;
   const claveCap = `${libroActual}_${capituloActual}`;
