@@ -471,21 +471,17 @@ async function reemplazoGlobal() {
   if (usuarioGoogle) {
     for (const { libro, texto } of librosModificados) {
       const nombreTexto = `BibliaEditable_${libro}_global.json`;
-      await new Promise((resolve) => {
-        guardarCambiosEnDrive(nombreTexto, texto);
-        resolve();
-      });
+      guardarCambiosEnDrive(nombreTexto, texto);
+      // no necesitas await aquí si guardarCambiosEnDrive no devuelve promesa
     }
   }
 
-  // ✅ Restaurar alertas
+  // ✅ Restaurar alertas y desbloquear UI
   window.mostrarAlertaDrive = true;
-
-  modal.style.display = "none"; // Desbloquear UI
+  modal.style.display = "none";
 
   alert(`✅ Reemplazo global completado: "${desde}" → "${hasta}" en ${librosModificados.length} libros.\nCambios guardados en Google Drive.`);
 }
-
 
 
 
