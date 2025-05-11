@@ -151,10 +151,10 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON, mostrarMensaje = tr
           }
           return res.json();
         })
-       .then((data) => {
-  console.log("✅ Archivo guardado en Drive:", data);
-  alert("✅ Cambios sincronizados en Google Drive."); // mostrar siempre
-})
+        .then((data) => {
+          console.log("✅ Archivo guardado en Drive:", data);
+          if (mostrarMensaje) alert("✅ Cambios sincronizados en Google Drive.");
+        })
         .catch((err) => {
           console.error("❌ Error al guardar en Drive:", err);
           if (mostrarMensaje) alert("❌ Error al guardar en Drive:\n" + err.message);
