@@ -134,9 +134,11 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
           })
           .then((data) => {
             console.log("✅ Archivo guardado en Drive:", data);
-           if (window.mostrarAlertaDrive !== false) {
+         if (!window.__alertDriveMostrada__) {
   alert("✅ Cambios sincronizados en Google Drive.");
+  window.__alertDriveMostrada__ = true; // 👈 evitar múltiples alertas
 }
+
           })
           .catch((err) => {
             console.error("❌ Error al guardar en Drive:", err);
