@@ -403,10 +403,22 @@ function cancelarCambios() {
 function reemplazoGlobal() {
   const desde = prompt("Palabra a reemplazar (sensible a mayúsculas):");
   const hasta = prompt("Nueva palabra:");
-
   if (!desde || !hasta) return;
 
-  Object.keys(fuentesRVR).forEach(libro => {
+  const libros = Object.keys(fuentesRVR);
+  const total = libros.length;
+  let completados = 0;
+
+  // Mostrar modal
+  const modal = document.getElementById("modalCargaGlobal");
+  const barra = document.getElementById("barraProgreso");
+  const texto = document.getElementById("porcentajeProgreso");
+
+  modal.style.display = "flex";
+  barra.style.width = "0%";
+  texto.textContent = "0%";
+
+  libros.forEach((libro, index) => {
     const url = fuentesRVR[libro];
     fetch(url)
       .then(res => res.json())
@@ -417,18 +429,29 @@ function reemplazoGlobal() {
           )
         );
 
-        // Guardar en local
+        // Guardar local
         localStorage.setItem(`global_${libro}`, JSON.stringify(textoModificado));
 
-        // Si hay sesión, subir a Google Drive
+        // Subir a Drive sin alertas
         if (usuarioGoogle) {
           const nombreTexto = `BibliaEditable_${libro}_global.json`;
-         guardarCambiosEnDrive(nombreTexto, textoModificado, false);
+          guardarCambiosEnDrive(nombreTexto, textoModificado, false);
+        }
+      })
+      .finally(() => {
+        completados++;
+        const progreso = Math.round((completados / total) * 100);
+        barra.style.width = progreso + "%";
+        texto.textContent = progreso + "%";
+
+        if (completados === total) {
+          setTimeout(() => {
+            modal.style.display = "none";
+            alert(`✅ Reemplazo global de "${desde}" por "${hasta}" completado y sincronizado.`);
+          }, 500); // darle medio segundo para que vea el 100%
         }
       });
   });
-
-  alert(`✅ Reemplazo global de "${desde}" por "${hasta}" completado y sincronizado.`);
 }
 
 
