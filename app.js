@@ -301,9 +301,12 @@ if (["Génesis"].includes(libroActual)) {
   fetch(url)
     .then(r => r.json())
     .then(json => {
-      datosInterlineales = json;
-      mostrarVersiculo();
-    })
+  console.log("✅ Interlineal recibido del fetch:", json);
+  console.log("🔍 Primer objeto:", json[0]);
+
+  datosInterlineales = json;
+  mostrarVersiculo();
+})
     .catch(() => {
       datosInterlineales = null;
       mostrarVersiculo();
@@ -467,6 +470,8 @@ function mostrarVersiculo() {
   } else {
     capitulo.forEach((texto, idx) => {
   const inter = datosInterlineales?.[idx]?.verse;
+  console.log(`➡ Verso ${idx + 1}`, texto);
+  console.log(`   Interlineal:`, inter);
   renderizarVersiculo(texto, idx + 1, inter);
 });
 
