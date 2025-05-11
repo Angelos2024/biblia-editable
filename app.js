@@ -257,21 +257,23 @@ async function buscarVersiculo() {
     }
 
     // 3. Aplicar reemplazo global si existe
-   if (reemplazoGlobal) {
-  textoOriginal = reemplazoGlobal;
-  console.log("✅ Se aplicó reemplazo global desde Drive");
-} else {
-  const localGlobal = localStorage.getItem(claveLocal);
-  if (localGlobal) {
-    try {
-      const reemplazo = JSON.parse(localGlobal);
-      textoOriginal = reemplazo;
-      console.log("✅ Se aplicó reemplazo global local");
-    } catch (e) {
-      console.warn("❌ Error al parsear global local:", e);
+    if (reemplazoGlobal) {
+      textoOriginal = reemplazoGlobal;
+      console.log("✅ Se aplicó reemplazo global desde Drive");
+    } else {
+      const localGlobal = localStorage.getItem(claveLocal);
+      if (localGlobal) {
+        try {
+          const reemplazo = JSON.parse(localGlobal);
+          textoOriginal = reemplazo;
+          console.log("✅ Se aplicó reemplazo global local");
+        } catch (e) {
+          console.warn("❌ Error al parsear global local:", e);
+        }
+      }
     }
-  }
-}
+
+
  else {
     
       if (localGlobal) {
