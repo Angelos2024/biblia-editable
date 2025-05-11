@@ -212,7 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-function buscarVersiculo() {
+async function buscarVersiculo() {
   const entrada = document.getElementById("searchInput").value.trim();
   const match = entrada.match(/([\wáéíóúÁÉÍÓÚñÑ]+)\s+(\d+)(?::(\d+))?/);
 
@@ -247,18 +247,36 @@ function buscarVersiculo() {
 .then(data => {
   textoOriginal = data;
 
-  const claveGlobal = `global_${libroActual}`;
-  const datosGlobales = localStorage.getItem(claveGlobal);
-  if (datosGlobales) {
-    try {
-      const reemplazo = JSON.parse(datosGlobales);
-      if (reemplazo?.length === textoOriginal.length) {
-        textoOriginal = reemplazo;
+const claveGlobal = `global_${libroActual}`;
+const nombreGlobalDrive = `BibliaEditable_${libroActual}_global.json`;
+
+// 1. Primero intentamos cargar el global desde Drive (si hay sesión)
+await new Promise(resolve => {
+  if (usuarioGoogle) {
+    cargarDesdeDrive(nombreGlobalDrive, (json) => {
+      if (json && json.length === textoOriginal.length) {
+        textoOriginal = json;
+      } else {
+        const datosGlobales = localStorage.getItem(claveGlobal);
+        if (datosGlobales) {
+          try {
+            const reemplazo = JSON.parse(datosGlobales);
+            if (reemplazo?.length === textoOriginal.length) {
+              textoOriginal = reemplazo;
+            }
+          } catch (e) {
+            console.warn("❌ Error al parsear reemplazo local:", e);
+          }
+        }
       }
-    } catch (e) {
-      console.warn("❌ Error al parsear reemplazo global:", e);
-    }
+      resolve();
+    });
+  } else {
+    resolve(); // Sin usuario, no hace nada
   }
+});
+
+
 
   const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
   const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
