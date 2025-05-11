@@ -303,6 +303,128 @@ function buscarVersiculo() {
 }
 
 
+function normalizarTextoPlano(texto) {
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function buscarPalabraGlobal(palabraEntrada) {
+  const palabra = palabraEntrada?.trim();
+  if (!palabra || palabra.length < 2) {
+    alert("Ingresa una palabra válida (mínimo 2 letras).");
+    return;
+  }
+
+  const resultadosDiv = document.getElementById("resultados");
+  resultadosDiv.innerHTML = `<p class="text-muted">🔍 Buscando la palabra "${palabra}" en toda la Biblia...</p>`;
+
+  const normalizadaBusqueda = normalizarTextoPlano(palabra);
+  const libros = Object.keys(fuentesRVR);
+  let totalProcesados = 0;
+  let resultados = [];
+
+  libros.forEach(libro => {
+    fetch(fuentesRVR[libro])
+      .then(res => res.json())
+      .then(data => {
+        data.forEach((capitulo, capIndex) => {
+          capitulo.forEach((verso, versIndex) => {
+            const textoPlano = normalizarTextoPlano(verso);
+            if (textoPlano.includes(normalizadaBusqueda)) {
+              resultados.push({
+                libro,
+                cap: capIndex + 1,
+                verso: versIndex + 1,
+                texto: verso
+              });
+            }
+          });
+        });
+      })
+      .finally(() => {
+        totalProcesados++;
+        if (totalProcesados === libros.length) {
+          mostrarResultadosBusqueda(resultados, palabra);
+        }
+      });
+  });
+}
+
+let resultadosBusquedaGlobal = [];
+let paginaActual = 1;
+const resultadosPorPagina = 7;
+
+function mostrarResultadosBusqueda(lista, palabra) {
+  resultadosBusquedaGlobal = lista;
+  paginaActual = 1;
+  renderizarPaginaResultados(palabra);
+}
+
+function renderizarPaginaResultados(palabra) {
+  const resultadosDiv = document.getElementById("resultados");
+  resultadosDiv.innerHTML = `<h5>🔎 Resultados de búsqueda para: "${palabra}"</h5>`;
+
+  if (resultadosBusquedaGlobal.length === 0) {
+    resultadosDiv.innerHTML += `<p>No se encontró la palabra en ningún versículo.</p>`;
+    return;
+  }
+
+  const inicio = (paginaActual - 1) * resultadosPorPagina;
+  const fin = inicio + resultadosPorPagina;
+  const pagina = resultadosBusquedaGlobal.slice(inicio, fin);
+
+  const ul = document.createElement("ul");
+  ul.classList.add("list-group");
+
+  pagina.forEach(res => {
+    const li = document.createElement("li");
+    li.className = "list-group-item";
+    li.innerHTML = `
+      <div>
+        <strong>${res.libro} ${res.cap}:${res.verso}</strong> — ${res.texto}
+      </div>
+      <div style="margin-top: 5px;">
+        <button class="btn btn-sm btn-primary" onclick="irAVersiculo('${res.libro}', ${res.cap}, ${res.verso})">Ir al versículo</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="irACapitulo('${res.libro}', ${res.cap})">Ver capítulo completo</button>
+      </div>
+    `;
+    ul.appendChild(li);
+  });
+
+  resultadosDiv.appendChild(ul);
+
+  // Paginación
+  const paginacion = document.createElement("div");
+  paginacion.style.marginTop = "15px";
+  paginacion.style.textAlign = "center";
+
+  const totalPaginas = Math.ceil(resultadosBusquedaGlobal.length / resultadosPorPagina);
+
+  if (paginaActual > 1) {
+    const btnPrev = document.createElement("button");
+    btnPrev.className = "btn btn-sm btn-secondary me-2";
+    btnPrev.innerText = "⏮ Anterior";
+    btnPrev.onclick = () => {
+      paginaActual--;
+      renderizarPaginaResultados(palabra);
+    };
+    paginacion.appendChild(btnPrev);
+  }
+
+  if (paginaActual < totalPaginas) {
+    const btnNext = document.createElement("button");
+    btnNext.className = "btn btn-sm btn-secondary";
+    btnNext.innerText = "Siguiente ⏭";
+    btnNext.onclick = () => {
+      paginaActual++;
+      renderizarPaginaResultados(palabra);
+    };
+    paginacion.appendChild(btnNext);
+  }
+
+  resultadosDiv.appendChild(paginacion);
+}
+
+
 function mostrarVersiculo() {
   const output = document.getElementById("resultados");
   if (!output) return;
@@ -468,6 +590,15 @@ function reemplazoGlobal() {
   });
 }
 
+function irAVersiculo(libro, cap, verso) {
+  document.getElementById("searchInput").value = `${libro} ${cap}:${verso}`;
+  buscarVersiculo();
+}
+
+function irACapitulo(libro, cap) {
+  document.getElementById("searchInput").value = `${libro} ${cap}`;
+  buscarVersiculo();
+}
 
 
 function restaurarVersiculo() {
