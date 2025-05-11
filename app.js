@@ -294,21 +294,25 @@ function buscarVersiculo() {
           }
 
           // 🔠 Cargar interlineal si es Génesis
-          if (libroActual === "Génesis") {
-            fetch("https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/interlineal/interlineal_genesis.json")
-              .then(r => r.json())
-              .then(json => {
-                datosInterlineales = json;
-                mostrarVersiculo();
-              })
-              .catch(() => {
-                datosInterlineales = null;
-                mostrarVersiculo();
-              });
-          } else {
-            datosInterlineales = null;
-            mostrarVersiculo();
-          }
+if (["Génesis"].includes(libroActual)) {
+  const archivo = `interlineal_${libroActual.toLowerCase()}.json`;
+  const url = `https://raw.githubusercontent.com/Angelos2024/biblia-editable/refs/heads/main/dist/interlineal/${archivo}`;
+
+  fetch(url)
+    .then(r => r.json())
+    .then(json => {
+      datosInterlineales = json;
+      mostrarVersiculo();
+    })
+    .catch(() => {
+      datosInterlineales = null;
+      mostrarVersiculo();
+    });
+} else {
+  datosInterlineales = null;
+  mostrarVersiculo();
+}
+
         });
       });
 
