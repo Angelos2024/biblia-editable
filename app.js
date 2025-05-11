@@ -504,11 +504,11 @@ function renderizarVersiculo(texto, numero, interlineal = null) {
   const p = document.createElement("p");
 
   // Si hay interlineal, renderizar encima
-  if (interlineal && Array.isArray(interlineal.verse)) {
+  if (Array.isArray(interlineal)) {
     const interDiv = document.createElement("div");
     interDiv.className = "interlineal";
 
-    interlineal.verse.forEach(palabra => {
+    interlineal.forEach(palabra => {
       const span = document.createElement("span");
       span.className = "inter-palabra";
 
@@ -521,6 +521,7 @@ function renderizarVersiculo(texto, numero, interlineal = null) {
         span.appendChild(document.createElement("br"));
       }
 
+      // Agrega la palabra hebrea y su traducción
       span.innerHTML += `${palabra.word}<br><small>${palabra.text}</small>`;
       interDiv.appendChild(span);
     });
@@ -535,7 +536,6 @@ function renderizarVersiculo(texto, numero, interlineal = null) {
     .join(" ");
   contenedor.appendChild(p);
 }
-
 
 
 function editarPalabra(span) {
