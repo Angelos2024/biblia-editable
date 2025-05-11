@@ -1,4 +1,5 @@
 // app.js
+let datosInterlineales = null;
 
 
 const fuentesRVR = {
@@ -292,7 +293,22 @@ function buscarVersiculo() {
             }
           }
 
-          mostrarVersiculo();
+          // 🔠 Cargar interlineal si es Génesis
+          if (libroActual === "Génesis") {
+            fetch("https://raw.githubusercontent.com/xtiam57/church-utils/refs/heads/main/dist/interlineal/interlineal_genesis.json")
+              .then(r => r.json())
+              .then(json => {
+                datosInterlineales = json;
+                mostrarVersiculo();
+              })
+              .catch(() => {
+                datosInterlineales = null;
+                mostrarVersiculo();
+              });
+          } else {
+            datosInterlineales = null;
+            mostrarVersiculo();
+          }
         });
       });
 
@@ -301,6 +317,7 @@ function buscarVersiculo() {
     buscarPalabraGlobal(entrada);
   }
 }
+
 
 
 function normalizarTextoPlano(texto) {
@@ -469,12 +486,43 @@ function mostrarVersiculo() {
 }
 
 
-function renderizarVersiculo(texto, numero) {
+function renderizarVersiculo(texto, numero, interlineal = null) {
   const contenedor = document.getElementById("resultados");
   const p = document.createElement("p");
-  p.innerHTML = `<b>${numero}</b> ` + texto.split(" ").map(palabra => `<span class="verse-word" onclick="editarPalabra(this)">${palabra}</span>`).join(" ");
+
+  // Si hay interlineal, renderizar encima
+  if (Array.isArray(interlineal)) {
+    const interDiv = document.createElement("div");
+    interDiv.className = "interlineal";
+
+    interlineal.forEach(palabra => {
+      const span = document.createElement("span");
+      span.className = "inter-palabra";
+
+      if (palabra.number) {
+        const a = document.createElement("a");
+        a.href = `https://www.blueletterbible.org/lexicon/${palabra.number.toLowerCase()}/kjv`;
+        a.target = "_blank";
+        a.textContent = palabra.number.toUpperCase();
+        span.appendChild(a);
+        span.appendChild(document.createElement("br"));
+      }
+
+      span.innerHTML += `${palabra.word}<br><small>${palabra.text}</small>`;
+      interDiv.appendChild(span);
+    });
+
+    contenedor.appendChild(interDiv);
+  }
+
+  // Versículo normal con palabras editables
+  p.innerHTML = `<b>${numero}</b> ` + texto
+    .split(" ")
+    .map(pal => `<span class="verse-word" onclick="editarPalabra(this)">${pal}</span>`)
+    .join(" ");
   contenedor.appendChild(p);
 }
+
 
 function editarPalabra(span) {
   if (span.contentEditable === "true") return;
