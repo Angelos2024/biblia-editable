@@ -461,7 +461,11 @@ function mostrarVersiculo() {
     }
     renderizarVersiculo(verso, versiculoActual + 1);
   } else {
-    capitulo.forEach((texto, idx) => renderizarVersiculo(texto, idx + 1));
+    capitulo.forEach((texto, idx) => {
+  const inter = datosInterlineales?.[capituloActual]?.[idx];
+  renderizarVersiculo(texto, idx + 1, inter);
+});
+
   }
 
   // 🔁 Cargar notas desde Drive si hay sesión y estamos en un capítulo válido
@@ -491,11 +495,11 @@ function renderizarVersiculo(texto, numero, interlineal = null) {
   const p = document.createElement("p");
 
   // Si hay interlineal, renderizar encima
-  if (Array.isArray(interlineal)) {
+  if (interlineal && Array.isArray(interlineal.verse)) {
     const interDiv = document.createElement("div");
     interDiv.className = "interlineal";
 
-    interlineal.forEach(palabra => {
+    interlineal.verse.forEach(palabra => {
       const span = document.createElement("span");
       span.className = "inter-palabra";
 
@@ -522,6 +526,7 @@ function renderizarVersiculo(texto, numero, interlineal = null) {
     .join(" ");
   contenedor.appendChild(p);
 }
+
 
 
 function editarPalabra(span) {
