@@ -406,12 +406,15 @@ async function reemplazoGlobal() {
   const hasta = prompt("Nueva palabra:");
   if (!desde || !hasta) return;
 
+  // 🚫 Bloquear UI
+  const modal = document.getElementById("modalGlobalizando");
+  modal.style.display = "flex";
+
   const librosModificados = [];
 
   for (const libro of Object.keys(fuentesRVR)) {
-    const url = fuentesRVR[libro];
     try {
-      const res = await fetch(url);
+      const res = await fetch(fuentesRVR[libro]);
       const data = await res.json();
 
       const textoModificado = data.map(capitulo =>
@@ -420,6 +423,7 @@ async function reemplazoGlobal() {
         )
       );
 
+      // Guardar global en localStorage
       localStorage.setItem(`global_${libro}`, JSON.stringify(textoModificado));
       librosModificados.push({ libro, texto: textoModificado });
     } catch (e) {
@@ -427,15 +431,23 @@ async function reemplazoGlobal() {
     }
   }
 
+  // ⬆️ Guardar en Drive
   if (usuarioGoogle) {
     for (const { libro, texto } of librosModificados) {
       const nombreTexto = `BibliaEditable_${libro}_global.json`;
-      guardarCambiosEnDrive(nombreTexto, texto);
+      await new Promise((resolve) => {
+        guardarCambiosEnDrive(nombreTexto, texto);
+        // Espera breve para evitar saturar la API
+        setTimeout(resolve, 600); // Puedes ajustar esto
+      });
     }
   }
 
+  modal.style.display = "none"; // ✅ Desbloquear UI
+
   alert(`✅ Reemplazo global completado: "${desde}" → "${hasta}" en ${librosModificados.length} libros.`);
 }
+
 
 
 
