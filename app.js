@@ -212,6 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+
 async function buscarVersiculo() {
   const entrada = document.getElementById("searchInput").value.trim();
   const match = entrada.match(/([\wáéíóúÁÉÍÓÚñÑ]+)\s+(\d+)(?::(\d+))?/);
@@ -244,7 +245,7 @@ async function buscarVersiculo() {
     const data = await res.json();
     textoOriginal = data;
 
-    // 🟡 INTENTAR CARGAR GLOBAL DESDE DRIVE
+    // GLOBAL DESDE DRIVE
     const claveGlobal = `global_${libroActual}`;
     const nombreGlobalDrive = `BibliaEditable_${libroActual}_global.json`;
 
@@ -271,7 +272,7 @@ async function buscarVersiculo() {
       });
     }
 
-    // 🔁 SOBREESCRIBIR CON CAMBIOS DEL CAPÍTULO
+    // CAMBIOS POR CAPÍTULO
     const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
     const contenidoDrive = await new Promise(resolve => {
       cargarDesdeDrive(nombreTexto, resolve);
@@ -305,6 +306,7 @@ async function buscarVersiculo() {
     document.getElementById("resultados").innerHTML = "<p>❌ Error al cargar capítulo</p>";
   }
 }
+
 
 
 function mostrarVersiculo() {
