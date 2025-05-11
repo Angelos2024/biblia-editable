@@ -466,7 +466,7 @@ function mostrarVersiculo() {
     renderizarVersiculo(verso, versiculoActual + 1);
   } else {
     capitulo.forEach((texto, idx) => {
-  const inter = datosInterlineales?.[capituloActual]?.[idx];
+  const inter = datosInterlineales?.[idx]?.verse;
   renderizarVersiculo(texto, idx + 1, inter);
 });
 
