@@ -103,16 +103,16 @@ function obtenerOCrearCarpetaBase(nombreCarpeta, callback) {
 }
 
 
-function guardarCambiosEnDrive(nombreArchivo, contenidoJSON, mostrarMensaje = true) {
+function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
   if (!usuarioGoogle) {
-    if (mostrarMensaje) alert("Debes iniciar sesión con Google para guardar en Drive.");
+    alert("Debes iniciar sesión con Google para guardar en Drive.");
     return;
   }
 
   inicializarGapi(() => {
     if (!gapiInitialized || !gapi.client?.drive) {
       console.error("❌ GAPI no está listo. Cancelando guardado.");
-      if (mostrarMensaje) alert("❌ Error interno: GAPI no está listo.");
+      alert("❌ Error interno: GAPI no está listo.");
       return;
     }
 
@@ -153,17 +153,16 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON, mostrarMensaje = tr
         })
         .then((data) => {
           console.log("✅ Archivo guardado en Drive:", data);
-          if (mostrarMensaje) alert("✅ Cambios sincronizados en Google Drive.");
+          alert("✅ Cambios sincronizados en Google Drive.");
         })
         .catch((err) => {
           console.error("❌ Error al guardar en Drive:", err);
-          if (mostrarMensaje) alert("❌ Error al guardar en Drive:\n" + err.message);
+          alert("❌ Error al guardar en Drive:\n" + err.message);
         });
       });
     });
   });
 }
-
 
 
 function buscarArchivoExistente(nombreArchivo, callback) {
