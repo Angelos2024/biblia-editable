@@ -241,54 +241,55 @@ async function buscarVersiculo() {
   document.getElementById("resultados").innerHTML = "<p class='text-muted'>⏳ Cargando capítulo...</p>";
 
   try {
+    // 1. Descargar texto original del libro
     const res = await fetch(url);
     const data = await res.json();
     textoOriginal = data;
 
-    // GLOBAL DESDE DRIVE
-    const claveGlobal = `global_${libroActual}`;
+    // 2. Intentar cargar reemplazo global desde Drive
     const nombreGlobalDrive = `BibliaEditable_${libroActual}_global.json`;
+    let reemplazoGlobal = null;
 
     if (usuarioGoogle) {
-      await new Promise(resolve => {
-        cargarDesdeDrive(nombreGlobalDrive, (json) => {
-          if (json && json.length === textoOriginal.length) {
-            textoOriginal = json;
-          } else {
-            const localGlobal = localStorage.getItem(claveGlobal);
-            if (localGlobal) {
-              try {
-                const reemplazo = JSON.parse(localGlobal);
-                if (reemplazo.length === textoOriginal.length) {
-                  textoOriginal = reemplazo;
-                }
-              } catch (e) {
-                console.warn("❌ Error al parsear global local:", e);
-              }
-            }
-          }
-          resolve();
-        });
+      reemplazoGlobal = await new Promise(resolve => {
+        cargarDesdeDrive(nombreGlobalDrive, (json) => resolve(json));
       });
     }
 
-    // CAMBIOS POR CAPÍTULO
-    const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
-    const contenidoDrive = await new Promise(resolve => {
-      cargarDesdeDrive(nombreTexto, resolve);
-    });
-
-    const overrideLocal = localStorage.getItem(claveCap);
-
-    if (contenidoDrive) {
-      for (const verso in contenidoDrive) {
-        const idx = parseInt(verso) - 1;
-        if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
-          textoOriginal[capituloActual][idx] = contenidoDrive[verso];
+    // 3. Aplicar reemplazo global si existe
+    if (reemplazoGlobal && reemplazoGlobal.length === textoOriginal.length) {
+      textoOriginal = reemplazoGlobal;
+    } else {
+      const localGlobal = localStorage.getItem(claveLocal);
+      if (localGlobal) {
+        try {
+          const reemplazo = JSON.parse(localGlobal);
+          if (reemplazo.length === textoOriginal.length) {
+            textoOriginal = reemplazo;
+          }
+        } catch (e) {
+          console.warn("❌ Error al parsear global local:", e);
         }
       }
     }
 
+    // 4. Cargar cambios por capítulo desde Drive (individuales)
+    const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
+    const contenidoCapituloDrive = await new Promise(resolve => {
+      cargarDesdeDrive(nombreTexto, resolve);
+    });
+
+    if (contenidoCapituloDrive) {
+      for (const verso in contenidoCapituloDrive) {
+        const idx = parseInt(verso) - 1;
+        if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+          textoOriginal[capituloActual][idx] = contenidoCapituloDrive[verso];
+        }
+      }
+    }
+
+    // 5. Cargar cambios locales por capítulo
+    const overrideLocal = localStorage.getItem(claveCap);
     if (overrideLocal) {
       const override = JSON.parse(overrideLocal);
       for (const verso in override) {
