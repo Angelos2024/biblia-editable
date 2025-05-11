@@ -235,7 +235,6 @@ async function buscarVersiculo() {
     return;
   }
 
-  // Limpiar estado anterior
   textoOriginal = [];
   textoEditado = {};
   document.getElementById("resultados").innerHTML = "<p class='text-muted'>⏳ Cargando capítulo...</p>";
@@ -245,54 +244,46 @@ async function buscarVersiculo() {
     const data = await res.json();
     textoOriginal = data;
 
-    // === PRIORIDAD GLOBAL ===
+    // 🟡 INTENTAR CARGAR GLOBAL DESDE DRIVE
+    const claveGlobal = `global_${libroActual}`;
     const nombreGlobalDrive = `BibliaEditable_${libroActual}_global.json`;
-    const datosGlobalesLocal = localStorage.getItem(claveLocal);
 
     if (usuarioGoogle) {
-      const promesaGlobal = new Promise(resolve => {
+      await new Promise(resolve => {
         cargarDesdeDrive(nombreGlobalDrive, (json) => {
           if (json && json.length === textoOriginal.length) {
             textoOriginal = json;
-          } else if (datosGlobalesLocal) {
-            try {
-              const reemplazo = JSON.parse(datosGlobalesLocal);
-              if (reemplazo.length === textoOriginal.length) {
-                textoOriginal = reemplazo;
+          } else {
+            const localGlobal = localStorage.getItem(claveGlobal);
+            if (localGlobal) {
+              try {
+                const reemplazo = JSON.parse(localGlobal);
+                if (reemplazo.length === textoOriginal.length) {
+                  textoOriginal = reemplazo;
+                }
+              } catch (e) {
+                console.warn("❌ Error al parsear global local:", e);
               }
-            } catch (e) {
-              console.warn("❌ Error al parsear global local:", e);
             }
           }
           resolve();
         });
       });
-      await promesaGlobal;
-    } else if (datosGlobalesLocal) {
-      try {
-        const reemplazo = JSON.parse(datosGlobalesLocal);
-        if (reemplazo.length === textoOriginal.length) {
-          textoOriginal = reemplazo;
-        }
-      } catch (e) {
-        console.warn("❌ Error al parsear global local sin sesión:", e);
-      }
     }
 
-    // === PRIORIDAD POR CAPÍTULO ===
+    // 🔁 SOBREESCRIBIR CON CAMBIOS DEL CAPÍTULO
     const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
-    const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
-    const contenidoCap = await new Promise(resolve => {
+    const contenidoDrive = await new Promise(resolve => {
       cargarDesdeDrive(nombreTexto, resolve);
     });
 
     const overrideLocal = localStorage.getItem(claveCap);
 
-    if (contenidoCap) {
-      for (const verso in contenidoCap) {
+    if (contenidoDrive) {
+      for (const verso in contenidoDrive) {
         const idx = parseInt(verso) - 1;
         if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
-          textoOriginal[capituloActual][idx] = contenidoCap[verso];
+          textoOriginal[capituloActual][idx] = contenidoDrive[verso];
         }
       }
     }
@@ -314,7 +305,7 @@ async function buscarVersiculo() {
     document.getElementById("resultados").innerHTML = "<p>❌ Error al cargar capítulo</p>";
   }
 }
-   
+
 
 function mostrarVersiculo() {
   const output = document.getElementById("resultados");
