@@ -401,35 +401,40 @@ function cancelarCambios() {
   buscarVersiculo();
 }
 
-function reemplazoGlobal() {
+async function reemplazoGlobal() {
   const desde = prompt("Palabra a reemplazar (sensible a mayúsculas):");
   const hasta = prompt("Nueva palabra:");
-
   if (!desde || !hasta) return;
 
-  Object.keys(fuentesRVR).forEach(libro => {
+  const librosModificados = [];
+
+  for (const libro of Object.keys(fuentesRVR)) {
     const url = fuentesRVR[libro];
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        const textoModificado = data.map(capitulo =>
-          capitulo.map(verso =>
-            verso.replace(new RegExp(`\\b${desde}\\b`, 'g'), hasta)
-          )
-        );
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
 
-        // Guardar en local
-        localStorage.setItem(`global_${libro}`, JSON.stringify(textoModificado));
+      const textoModificado = data.map(capitulo =>
+        capitulo.map(verso =>
+          verso.replace(new RegExp(`\\b${desde}\\b`, 'g'), hasta)
+        )
+      );
 
-        // Si hay sesión, subir a Google Drive
-        if (usuarioGoogle) {
-          const nombreTexto = `BibliaEditable_${libro}_global.json`;
-          guardarCambiosEnDrive(nombreTexto, textoModificado);
-        }
-      });
-  });
+      localStorage.setItem(`global_${libro}`, JSON.stringify(textoModificado));
+      librosModificados.push({ libro, texto: textoModificado });
+    } catch (e) {
+      console.warn(`❌ Falló ${libro}:`, e);
+    }
+  }
 
-  alert(`✅ Reemplazo global de "${desde}" por "${hasta}" completado y sincronizado.`);
+  if (usuarioGoogle) {
+    for (const { libro, texto } of librosModificados) {
+      const nombreTexto = `BibliaEditable_${libro}_global.json`;
+      guardarCambiosEnDrive(nombreTexto, texto);
+    }
+  }
+
+  alert(`✅ Reemplazo global completado: "${desde}" → "${hasta}" en ${librosModificados.length} libros.`);
 }
 
 
