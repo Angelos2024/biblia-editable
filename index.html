@@ -240,6 +240,10 @@
         alert("❌ La función de importación no está disponible.");
       }
     }
+    document.addEventListener("DOMContentLoaded", () => {
+  poblarDropdowns(); // ✅ Mostrar libros al cargar
+});
+
   </script>
   <div id="modalGlobalizando" style="
   position: fixed;
