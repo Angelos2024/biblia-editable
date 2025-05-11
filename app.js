@@ -1,4 +1,3 @@
-
 // app.js
 
 const fuentesRVR = {
@@ -212,8 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-
-async function buscarVersiculo() {
+function buscarVersiculo() {
   const entrada = document.getElementById("searchInput").value.trim();
   const match = entrada.match(/([\wáéíóúÁÉÍÓÚñÑ]+)\s+(\d+)(?::(\d+))?/);
 
@@ -229,101 +227,67 @@ async function buscarVersiculo() {
 
   const claveLocal = `global_${libroActual}`;
   const claveCap = `${libroActual}_${capituloActual}`;
-  const url = fuentesRVR[libroActual];
+  const localGlobal = localStorage.getItem(claveLocal);
+  const localCap = localStorage.getItem(claveCap);
 
+  const url = fuentesRVR[libroActual];
   if (!url) {
     alert("Libro no disponible todavía.");
     return;
   }
 
+ // Limpiar estado anterior para evitar errores de mezcla
   textoOriginal = [];
   textoEditado = {};
   document.getElementById("resultados").innerHTML = "<p class='text-muted'>⏳ Cargando capítulo...</p>";
 
-  try {
-    // 1. Descargar texto original del libro
-    const res = await fetch(url);
-    const data = await res.json();
-    textoOriginal = data;
+ fetch(url)
+  .then(res => res.json())
+.then(data => {
+  textoOriginal = data;
 
-    // 2. Intentar cargar reemplazo global desde Drive
-    const nombreGlobalDrive = `BibliaEditable_${libroActual}_global.json`;
-    let reemplazoGlobal = null;
-
-    if (usuarioGoogle) {
-      reemplazoGlobal = await new Promise(resolve => {
-        cargarDesdeDrive(nombreGlobalDrive, (json) => resolve(json));
-      });
-    }
-
-    // 3. Aplicar reemplazo global si existe
-    if (reemplazoGlobal) {
-      textoOriginal = reemplazoGlobal;
-      console.log("✅ Se aplicó reemplazo global desde Drive");
-    } else {
-      const localGlobal = localStorage.getItem(claveLocal);
-      if (localGlobal) {
-        try {
-          const reemplazo = JSON.parse(localGlobal);
-          textoOriginal = reemplazo;
-          console.log("✅ Se aplicó reemplazo global local");
-        } catch (e) {
-          console.warn("❌ Error al parsear global local:", e);
-        }
+  const claveGlobal = `global_${libroActual}`;
+  const datosGlobales = localStorage.getItem(claveGlobal);
+  if (datosGlobales) {
+    try {
+      const reemplazo = JSON.parse(datosGlobales);
+      if (reemplazo?.length === textoOriginal.length) {
+        textoOriginal = reemplazo;
       }
+    } catch (e) {
+      console.warn("❌ Error al parsear reemplazo global:", e);
     }
-
-
- else {
-    
-      if (localGlobal) {
-        try {
-          const reemplazo = JSON.parse(localGlobal);
-          if (reemplazo.length === textoOriginal.length) {
-            textoOriginal = reemplazo;
-          }
-        } catch (e) {
-          console.warn("❌ Error al parsear global local:", e);
-        }
-      }
-    }
-
-    // 4. Cargar cambios por capítulo desde Drive (individuales)
-    const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
-    const contenidoCapituloDrive = await new Promise(resolve => {
-      cargarDesdeDrive(nombreTexto, resolve);
-    });
-
-    if (contenidoCapituloDrive) {
-      for (const verso in contenidoCapituloDrive) {
-        const idx = parseInt(verso) - 1;
-        if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
-          textoOriginal[capituloActual][idx] = contenidoCapituloDrive[verso];
-        }
-      }
-    }
-
-    // 5. Cargar cambios locales por capítulo
-    const overrideLocal = localStorage.getItem(claveCap);
-    if (overrideLocal) {
-      const override = JSON.parse(overrideLocal);
-      for (const verso in override) {
-        const idx = parseInt(verso) - 1;
-        if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
-          textoOriginal[capituloActual][idx] = override[verso];
-        }
-      }
-    }
-
-    mostrarVersiculo();
-
-  } catch (e) {
-    console.error("❌ Error al cargar el capítulo:", e);
-    document.getElementById("resultados").innerHTML = "<p>❌ Error al cargar capítulo</p>";
   }
-}
 
+  const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
+  const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
 
+    cargarDesdeDrive(nombreTexto, (contenidoDrive) => {
+      const localCap = localStorage.getItem(`${libroActual}_${capituloActual}`);
+
+      if (contenidoDrive) {
+        for (const verso in contenidoDrive) {
+          const idx = parseInt(verso) - 1;
+          if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+            textoOriginal[capituloActual][idx] = contenidoDrive[verso];
+          }
+        }
+      }
+
+      if (localCap) {
+        const override = JSON.parse(localCap);
+        for (const verso in override) {
+          const idx = parseInt(verso) - 1;
+          if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+            textoOriginal[capituloActual][idx] = override[verso];
+          }
+        }
+      }
+
+      mostrarVersiculo();
+    }); 
+  });  
+}       
 
 function mostrarVersiculo() {
   const output = document.getElementById("resultados");
@@ -436,53 +400,35 @@ function cancelarCambios() {
   buscarVersiculo();
 }
 
-async function reemplazoGlobal() {
+function reemplazoGlobal() {
   const desde = prompt("Palabra a reemplazar (sensible a mayúsculas):");
   const hasta = prompt("Nueva palabra:");
+
   if (!desde || !hasta) return;
 
-  // 🚫 Bloquear UI
-  const modal = document.getElementById("modalGlobalizando");
-  modal.style.display = "flex";
+  Object.keys(fuentesRVR).forEach(libro => {
+    const url = fuentesRVR[libro];
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        const textoModificado = data.map(capitulo =>
+          capitulo.map(verso =>
+            verso.replace(new RegExp(`\\b${desde}\\b`, 'g'), hasta)
+          )
+        );
 
-  // 🔕 Evitar múltiples alertas
-  window.mostrarAlertaDrive = false;
+        // Guardar en local
+        localStorage.setItem(`global_${libro}`, JSON.stringify(textoModificado));
 
-  const librosModificados = [];
+        // Si hay sesión, subir a Google Drive
+        if (usuarioGoogle) {
+          const nombreTexto = `BibliaEditable_${libro}_global.json`;
+          guardarCambiosEnDrive(nombreTexto, textoModificado);
+        }
+      });
+  });
 
-  for (const libro of Object.keys(fuentesRVR)) {
-    try {
-      const res = await fetch(fuentesRVR[libro]);
-      const data = await res.json();
-
-      const textoModificado = data.map(capitulo =>
-        capitulo.map(verso =>
-          verso.replace(new RegExp(`\\b${desde}\\b`, 'g'), hasta)
-        )
-      );
-
-      // Guardar global en localStorage
-      localStorage.setItem(`global_${libro}`, JSON.stringify(textoModificado));
-      librosModificados.push({ libro, texto: textoModificado });
-    } catch (e) {
-      console.warn(`❌ Falló ${libro}:`, e);
-    }
-  }
-
-  // ⬆️ Guardar en Drive si el usuario está autenticado
-  if (usuarioGoogle) {
-    for (const { libro, texto } of librosModificados) {
-      const nombreTexto = `BibliaEditable_${libro}_global.json`;
-      guardarCambiosEnDrive(nombreTexto, texto);
-      // no necesitas await aquí si guardarCambiosEnDrive no devuelve promesa
-    }
-  }
-
-  // ✅ Restaurar alertas y desbloquear UI
-  window.mostrarAlertaDrive = true;
-  modal.style.display = "none";
-
-  alert(`✅ Reemplazo global completado: "${desde}" → "${hasta}" en ${librosModificados.length} libros.\nCambios guardados en Google Drive.`);
+  alert(`✅ Reemplazo global de "${desde}" por "${hasta}" completado y sincronizado.`);
 }
 
 
