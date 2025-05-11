@@ -65,13 +65,6 @@ function inicializarGapi(callback) {
 
 function obtenerOCrearCarpetaBase(nombreCarpeta, callback) {
   inicializarGapi(() => {
-    if (!gapiInitialized || !gapi.client?.drive) {
-      console.error("❌ GAPI no está listo. No se puede buscar o crear la carpeta base.");
-      alert("❌ Error interno: GAPI no está inicializado correctamente.");
-      callback(null);
-      return;
-    }
-
     gapi.client.drive.files.list({
       q: `name='${nombreCarpeta}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
       fields: "files(id, name)"
@@ -80,6 +73,7 @@ function obtenerOCrearCarpetaBase(nombreCarpeta, callback) {
       if (folders.length > 0) {
         callback(folders[0].id); // ya existe
       } else {
+        // crearla
         gapi.client.drive.files.create({
           resource: {
             name: nombreCarpeta,
@@ -88,20 +82,11 @@ function obtenerOCrearCarpetaBase(nombreCarpeta, callback) {
           fields: "id"
         }).then((res) => {
           callback(res.result.id);
-        }).catch((err) => {
-          console.error("❌ Error al crear carpeta base:", err);
-          alert("❌ No se pudo crear la carpeta en Google Drive.");
-          callback(null);
         });
       }
-    }).catch((err) => {
-      console.error("❌ Error al buscar carpeta base:", err);
-      alert("❌ No se pudo acceder a tu Drive.");
-      callback(null);
     });
   });
 }
-
 
 function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
   if (!usuarioGoogle) {
@@ -110,12 +95,6 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
   }
 
   inicializarGapi(() => {
-    if (!gapiInitialized || !gapi.client?.drive) {
-      console.error("❌ GAPI no está listo. Cancelando guardado.");
-      alert("❌ Error interno: GAPI no está listo.");
-      return;
-    }
-
     buscarArchivoExistente(nombreArchivo, (fileId) => {
       obtenerOCrearCarpetaBase("Basebiblia_editable", (folderId) => {
         const metadata = {
@@ -123,6 +102,7 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
           mimeType: "application/json"
         };
 
+        // Solo incluir 'parents' si es una creación de archivo
         if (!fileId) {
           metadata.parents = [folderId];
         }
@@ -144,21 +124,21 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
           headers: new Headers({ Authorization: "Bearer " + accessToken }),
           body: form
         })
-        .then(async (res) => {
-          if (!res.ok) {
-            const errorText = await res.text();
-            throw new Error(`HTTP ${res.status} – ${errorText}`);
-          }
-          return res.json();
-        })
-        .then((data) => {
-          console.log("✅ Archivo guardado en Drive:", data);
-          alert("✅ Cambios sincronizados en Google Drive.");
-        })
-        .catch((err) => {
-          console.error("❌ Error al guardar en Drive:", err);
-          alert("❌ Error al guardar en Drive:\n" + err.message);
-        });
+          .then(async (res) => {
+            if (!res.ok) {
+              const errorText = await res.text();
+              throw new Error(`HTTP ${res.status} – ${errorText}`);
+            }
+            return res.json();
+          })
+          .then((data) => {
+            console.log("✅ Archivo guardado en Drive:", data);
+            alert("✅ Cambios sincronizados en Google Drive.");
+          })
+          .catch((err) => {
+            console.error("❌ Error al guardar en Drive:", err);
+            alert("❌ Error al guardar en Drive:\n" + err.message);
+          });
       });
     });
   });
@@ -167,18 +147,6 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
 
 function buscarArchivoExistente(nombreArchivo, callback) {
   obtenerOCrearCarpetaBase("Basebiblia_editable", (folderId) => {
-    if (!folderId) {
-      console.warn("⚠️ No se pudo obtener la carpeta base.");
-      callback(null);
-      return;
-    }
-
-    if (!gapiInitialized || !gapi.client?.drive) {
-      console.error("❌ GAPI no está listo. Cancelando búsqueda de archivo.");
-      callback(null);
-      return;
-    }
-
     gapi.client.drive.files
       .list({
         q: `'${folderId}' in parents and name='${nombreArchivo}' and trashed=false`,
@@ -193,13 +161,11 @@ function buscarArchivoExistente(nombreArchivo, callback) {
         }
       })
       .catch((err) => {
-        console.error("❌ Error al buscar archivo dentro de la carpeta:", err);
-        alert("❌ No se pudo buscar el archivo en tu Drive.");
+        console.error("❌ Error en buscarArchivoExistente dentro de carpeta:", err);
         callback(null);
       });
   });
 }
-
 
 
 function cargarDesdeDrive(nombreArchivo, callback) {
@@ -210,12 +176,6 @@ function cargarDesdeDrive(nombreArchivo, callback) {
   }
 
   inicializarGapi(() => {
-    if (!gapiInitialized || !gapi.client?.drive) {
-      console.error("❌ GAPI no está listo. Cancelando carga.");
-      callback(null);
-      return;
-    }
-
     buscarArchivoExistente(nombreArchivo, (fileId) => {
       if (!fileId) {
         callback(null);
@@ -230,11 +190,11 @@ function cargarDesdeDrive(nombreArchivo, callback) {
           const json = JSON.parse(response.body);
           callback(json);
         } catch (e) {
-          console.error("❌ Error al parsear JSON desde Drive:", e);
+          console.error("Error al parsear JSON desde Drive:", e);
           callback(null);
         }
       }).catch(err => {
-        console.error("❌ No se pudo obtener archivo de Drive:", err);
+        console.error("No se pudo obtener archivo de Drive:", err);
         callback(null);
       });
     });
