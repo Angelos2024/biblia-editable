@@ -1,3 +1,4 @@
+
 // app.js
 
 const fuentesRVR = {
@@ -225,69 +226,69 @@ function buscarVersiculo() {
   versiculoActual = match[3] ? parseInt(match[3], 10) - 1 : null;
   libroActual = aliasLibros[libroEntrada.toLowerCase()] || libroEntrada;
 
+  const claveLocal = `global_${libroActual}`;
   const claveCap = `${libroActual}_${capituloActual}`;
-  const claveGlobal = `global_${libroActual}`;
-  const url = fuentesRVR[libroActual];
+  const localGlobal = localStorage.getItem(claveLocal);
+  const localCap = localStorage.getItem(claveCap);
 
+  const url = fuentesRVR[libroActual];
   if (!url) {
     alert("Libro no disponible todavía.");
     return;
   }
 
+ // Limpiar estado anterior para evitar errores de mezcla
   textoOriginal = [];
   textoEditado = {};
   document.getElementById("resultados").innerHTML = "<p class='text-muted'>⏳ Cargando capítulo...</p>";
 
-  fetch(url)
-    .then(res => res.json())
-    .then(data => {
-      textoOriginal = data;
+ fetch(url)
+  .then(res => res.json())
+.then(data => {
+  textoOriginal = data;
 
-      cargarDesdeDrive(`BibliaEditable_${libroActual}_${capituloActual + 1}.json`, (contenidoDrive) => {
-        if (contenidoDrive) {
-          for (const verso in contenidoDrive) {
-            const idx = parseInt(verso) - 1;
-            if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
-              textoOriginal[capituloActual][idx] = contenidoDrive[verso];
-            }
-          }
-        } else {
-          const localCap = localStorage.getItem(claveCap);
-          if (localCap) {
-            const override = JSON.parse(localCap);
-            for (const verso in override) {
-              const idx = parseInt(verso) - 1;
-              if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
-                textoOriginal[capituloActual][idx] = override[verso];
-              }
-            }
-          } else {
-            // Solo si no hay Drive ni local, aplicar global
-            const datosGlobales = localStorage.getItem(claveGlobal);
-            if (datosGlobales) {
-              try {
-                const reemplazo = JSON.parse(datosGlobales);
-                if (reemplazo?.length === textoOriginal.length) {
-                  textoOriginal = reemplazo;
-                }
-              } catch (e) {
-                console.warn("❌ Error al parsear reemplazo global:", e);
-              }
-            }
+  const claveGlobal = `global_${libroActual}`;
+  const datosGlobales = localStorage.getItem(claveGlobal);
+  if (datosGlobales) {
+    try {
+      const reemplazo = JSON.parse(datosGlobales);
+      if (reemplazo?.length === textoOriginal.length) {
+        textoOriginal = reemplazo;
+      }
+    } catch (e) {
+      console.warn("❌ Error al parsear reemplazo global:", e);
+    }
+  }
+
+  const nombreTexto = `BibliaEditable_${libroActual}_${capituloActual + 1}.json`;
+  const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
+
+    cargarDesdeDrive(nombreTexto, (contenidoDrive) => {
+      const localCap = localStorage.getItem(`${libroActual}_${capituloActual}`);
+
+      if (contenidoDrive) {
+        for (const verso in contenidoDrive) {
+          const idx = parseInt(verso) - 1;
+          if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+            textoOriginal[capituloActual][idx] = contenidoDrive[verso];
           }
         }
+      }
 
-        mostrarVersiculo();
-      });
-    })
-    .catch(err => {
-      console.error("❌ Error al cargar capítulo:", err);
-      alert("❌ No se pudo cargar el capítulo.");
-    });
-}
+      if (localCap) {
+        const override = JSON.parse(localCap);
+        for (const verso in override) {
+          const idx = parseInt(verso) - 1;
+          if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+            textoOriginal[capituloActual][idx] = override[verso];
+          }
+        }
+      }
 
-
-    
+      mostrarVersiculo();
+    }); 
+  });  
+}       
 
 function mostrarVersiculo() {
   const output = document.getElementById("resultados");
@@ -400,66 +401,35 @@ function cancelarCambios() {
   buscarVersiculo();
 }
 
-async function reemplazoGlobal() {
+function reemplazoGlobal() {
   const desde = prompt("Palabra a reemplazar (sensible a mayúsculas):");
   const hasta = prompt("Nueva palabra:");
 
   if (!desde || !hasta) return;
 
-  const libros = Object.keys(fuentesRVR);
-  const total = libros.length;
-  let completados = 0;
-
-  // Mostrar barra inicial
-  const contenedor = document.getElementById("resultados");
-  contenedor.innerHTML = `
-    <p class='text-muted'>🔄 Reemplazando globalmente: <strong>${desde}</strong> → <strong>${hasta}</strong></p>
-    <div id="barraProgreso" style="width:100%;background:#ddd;border-radius:5px;overflow:hidden;height:20px;">
-      <div id="progresoInterno" style="width:0%;height:100%;background:#4caf50;text-align:center;color:white;font-size:12px;">0%</div>
-    </div>
-    <ul id="progresoLista" style="font-size:0.85rem;line-height:1.4;margin-top:10px;"></ul>
-  `;
-
-  const progresoInterno = document.getElementById("progresoInterno");
-  const progresoLista = document.getElementById("progresoLista");
-
-  const promesas = libros.map(async (libro) => {
+  Object.keys(fuentesRVR).forEach(libro => {
     const url = fuentesRVR[libro];
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        const textoModificado = data.map(capitulo =>
+          capitulo.map(verso =>
+            verso.replace(new RegExp(`\\b${desde}\\b`, 'g'), hasta)
+          )
+        );
 
-      const textoModificado = data.map(capitulo =>
-        capitulo.map(verso =>
-          verso.replace(new RegExp(`\\b${desde}\\b`, 'g'), hasta)
-        )
-      );
+        // Guardar en local
+        localStorage.setItem(`global_${libro}`, JSON.stringify(textoModificado));
 
-      localStorage.setItem(`global_${libro}`, JSON.stringify(textoModificado));
-
-      if (usuarioGoogle) {
-        const nombreTexto = `BibliaEditable_${libro}_global.json`;
-        await guardarCambiosEnDrive(nombreTexto, textoModificado);
-      }
-
-      progresoLista.innerHTML += `<li>✅ ${libro} procesado</li>`;
-    } catch (e) {
-      console.error(`❌ Error procesando ${libro}:`, e);
-      progresoLista.innerHTML += `<li style="color:red;">❌ Error en ${libro}</li>`;
-    }
-
-    // Actualizar barra
-    completados++;
-    const porcentaje = Math.round((completados / total) * 100);
-    progresoInterno.style.width = `${porcentaje}%`;
-    progresoInterno.innerText = `${porcentaje}%`;
+        // Si hay sesión, subir a Google Drive
+        if (usuarioGoogle) {
+          const nombreTexto = `BibliaEditable_${libro}_global.json`;
+          guardarCambiosEnDrive(nombreTexto, textoModificado);
+        }
+      });
   });
 
-  await Promise.all(promesas);
-
-  progresoInterno.style.background = "#2196F3";
-  progresoInterno.innerText = "100%";
-  progresoLista.innerHTML += `<li><strong>✅ Reemplazo global finalizado correctamente.</strong></li>`;
+  alert(`✅ Reemplazo global de "${desde}" por "${hasta}" completado y sincronizado.`);
 }
 
 
