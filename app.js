@@ -459,9 +459,13 @@ async function reemplazoGlobal() {
     for (const { libro, texto } of librosModificados) {
       const nombreTexto = `BibliaEditable_${libro}_global.json`;
       await new Promise((resolve) => {
-        guardarCambiosEnDrive(nombreTexto, texto);
-        setTimeout(resolve, 500); // Evitar saturación
-      });
+       await new Promise((resolve) => {
+  window.__alertDriveMostrada__ = false; // ← evitar múltiples alertas
+  guardarCambiosEnDrive(nombreTexto, texto);
+  setTimeout(resolve, 800); // subir sin sobresaturar
+});
+localStorage.setItem(`global_${libro}`, JSON.stringify(texto));
+
     }
   }
 
