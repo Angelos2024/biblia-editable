@@ -1,4 +1,3 @@
-
 // drive.js - actualizado para usar Google Identity Services (GIS) con manejo de errores + lista de archivos y persistencia de sesión
 
 let gapiInitialized = false;
@@ -131,7 +130,6 @@ function guardarCambiosEnDrive(nombreArchivo, contenidoJSON) {
               throw new Error(`HTTP ${res.status} – ${errorText}`);
             }
             return res.json();
-            
           })
           .then((data) => {
             console.log("✅ Archivo guardado en Drive:", data);
