@@ -295,7 +295,7 @@ function buscarVersiculo() {
 
           // 🔠 Cargar interlineal si es Génesis
 if (["Génesis"].includes(libroActual)) {
-  const archivo = `interlineal_${libroActual.toLowerCase()}.json`;
+  const archivo = `interlineal_${normalizarTexto(libroActual)}.json`;
   const url = `https://raw.githubusercontent.com/Angelos2024/biblia-editable/refs/heads/main/dist/interlineal/${archivo}`;
 
   fetch(url)
