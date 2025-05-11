@@ -257,10 +257,23 @@ async function buscarVersiculo() {
     }
 
     // 3. Aplicar reemplazo global si existe
-    if (reemplazoGlobal && reemplazoGlobal.length === textoOriginal.length) {
-      textoOriginal = reemplazoGlobal;
-    } else {
-      const localGlobal = localStorage.getItem(claveLocal);
+   if (reemplazoGlobal) {
+  textoOriginal = reemplazoGlobal;
+  console.log("✅ Se aplicó reemplazo global desde Drive");
+} else {
+  const localGlobal = localStorage.getItem(claveLocal);
+  if (localGlobal) {
+    try {
+      const reemplazo = JSON.parse(localGlobal);
+      textoOriginal = reemplazo;
+      console.log("✅ Se aplicó reemplazo global local");
+    } catch (e) {
+      console.warn("❌ Error al parsear global local:", e);
+    }
+  }
+}
+ else {
+    
       if (localGlobal) {
         try {
           const reemplazo = JSON.parse(localGlobal);
@@ -458,16 +471,13 @@ async function reemplazoGlobal() {
   if (usuarioGoogle) {
     for (const { libro, texto } of librosModificados) {
       const nombreTexto = `BibliaEditable_${libro}_global.json`;
-      await new Promise((resolve) => {
-       await new Promise((resolve) => {
-  window.__alertDriveMostrada__ = false; // ← evitar múltiples alertas
+     await new Promise((resolve) => {
   guardarCambiosEnDrive(nombreTexto, texto);
-  setTimeout(resolve, 800); // subir sin sobresaturar
+  resolve();
 });
-localStorage.setItem(`global_${libro}`, JSON.stringify(texto));
 
-    }
-  }
+
+
 
   // ✅ Restaurar alertas
   window.mostrarAlertaDrive = true;
@@ -476,6 +486,7 @@ localStorage.setItem(`global_${libro}`, JSON.stringify(texto));
 
   alert(`✅ Reemplazo global completado: "${desde}" → "${hasta}" en ${librosModificados.length} libros.\nCambios guardados en Google Drive.`);
 }
+
 
 
 function restaurarVersiculo() {
