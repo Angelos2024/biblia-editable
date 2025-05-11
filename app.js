@@ -430,6 +430,9 @@ async function reemplazoGlobal() {
   const modal = document.getElementById("modalGlobalizando");
   modal.style.display = "flex";
 
+  // 🔕 Evitar múltiples alertas
+  window.mostrarAlertaDrive = false;
+
   const librosModificados = [];
 
   for (const libro of Object.keys(fuentesRVR)) {
@@ -457,18 +460,18 @@ async function reemplazoGlobal() {
       const nombreTexto = `BibliaEditable_${libro}_global.json`;
       await new Promise((resolve) => {
         guardarCambiosEnDrive(nombreTexto, texto);
-        // Espera breve para evitar saturar la API
-        setTimeout(resolve, 600); // Puedes ajustar esto
+        setTimeout(resolve, 500); // Evitar saturación
       });
     }
   }
 
-  modal.style.display = "none"; // ✅ Desbloquear UI
+  // ✅ Restaurar alertas
+  window.mostrarAlertaDrive = true;
 
-  alert(`✅ Reemplazo global completado: "${desde}" → "${hasta}" en ${librosModificados.length} libros.`);
+  modal.style.display = "none"; // Desbloquear UI
+
+  alert(`✅ Reemplazo global completado: "${desde}" → "${hasta}" en ${librosModificados.length} libros.\nCambios guardados en Google Drive.`);
 }
-
-
 
 
 function restaurarVersiculo() {
