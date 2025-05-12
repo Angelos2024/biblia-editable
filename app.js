@@ -489,11 +489,12 @@ function mostrarVersiculo() {
     renderizarVersiculo(verso, versiculoActual + 1);
   } else {
 capitulo.forEach((texto, idx) => {
-  const numeroVerso = idx + 1;
-  const inter = datosInterlineales?.[numeroVerso];
-  console.log("🔍 Interlineal para verso", numeroVerso, inter);
-  renderizarVersiculo(texto, numeroVerso, inter);
+  const versoNumero = idx + 1;
+  const interlineal = datosInterlineales?.[versoNumero] || null;
+  renderizarVersiculo(texto, versoNumero, interlineal);
 });
+console.log("🧪 Verso #", idx + 1, "texto:", texto, "interlineal:", datosInterlineales?.[idx + 1]);
+
 
   }
 
