@@ -303,26 +303,24 @@ if (["Génesis"].includes(libroActual)) {
     .then(r => r.json())
     .then(json => {
  
+// 🔢 Construir claves de libro y capítulo
+const libroEsperado = "01"; // Génesis
+const capituloEsperado = String(capituloActual + 1).padStart(2, "0"); // "01", "02", etc.
 
-  // Filtrar solo el capítulo actual
-const capituloId = String(capituloActual + 1).padStart(2, "0"); // correcto
+console.log("🧩 Cargando interlineal SOLO para capítulo:", capituloEsperado);
 
-const libroId = "01"; // Por ahora solo para Génesis
+datosInterlineales = Object.fromEntries(
+  json
+    .filter(item => {
+      const id = item.id || "";
+      const libroId = id.slice(0, 2);
+      const capId = id.slice(2, 4);
+      return libroId === libroEsperado && capId === capituloEsperado;
+    })
+    .map(item => [item.id, item.verse])
+);
 
-datosInterlineales = {};
-json.forEach(item => {
-  const id = item.id;
-  const libro = id.slice(0, 2);
-  const capitulo = id.slice(2, 4);
-  const versiculo = id.slice(4);
-  if (libro === "01" && capitulo === capituloId) {
-datosInterlineales[id] = item.verse; // ahora usamos el ID completo como clave
-
-  }
-});
-console.log("📚 Interlineal cargado:", datosInterlineales);
-
-
+console.log("📚 Interlineal filtrado:", Object.keys(datosInterlineales));
 
   mostrarVersiculo();
 })
