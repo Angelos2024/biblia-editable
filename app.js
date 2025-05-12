@@ -499,7 +499,7 @@ capitulo.forEach((texto, index) => {
 
 
 
-console.log("🧪 Verso #", idx + 1, "texto:", texto, "interlineal:", datosInterlineales?.[idx + 1]);
+
 
 
   }
