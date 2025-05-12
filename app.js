@@ -364,6 +364,7 @@ datosInterlineales = Object.fromEntries(
 );
 
 
+console.log("🔍 Entradas recibidas del interlineal:", json.map(x => x.id));
 
                 console.log(`📚 Interlineal cargado para ${libroActual} capítulo ${capituloEsperado}:`, Object.keys(datosInterlineales));
                 mostrarVersiculo();
