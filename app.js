@@ -522,28 +522,25 @@ function mostrarVersiculo() {
 
     // 🔢 ID único de versículo si hay interlineal
     const versoNum = versiculoActual + 1;
-const capStr = String(capituloActual + 1).padStart(2, "0");   // ← capítulo indexado desde 1
-const versStr = String(versoNum).padStart(4, "0");            // ← versículo como "0001"
-    const libroStr = codigosLibros[libroActual]; // "01"
-const idCompleto = `${libroStr}${capStr}${versStr}`;          // ← "01010001"
+    const capStr = String(capituloActual).padStart(2, "0");            // ✅ capítulo indexado desde 0
+    const versStr = String(1000 + versoNum).padStart(4, "0");          // ✅ versículo como "1001"
+    const libroStr = codigosLibros[libroActual];                      // "01"
+    const idCompleto = `${libroStr}${capStr}${versStr}`;              // "01001001"
+
     const inter = datosInterlineales?.[idCompleto] || null;
 
     console.log("📦 Renderizando versículo único:", versoNum);
     console.log("🔎 Buscando ID:", idCompleto, "=>", inter);
 
     renderizarVersiculo(verso, versoNum, inter);
+
   } else {
-capitulo.forEach((texto, index) => {
-  const versoNum = index + 1;
-const capStr = String(capituloActual + 1).padStart(2, "0");   // ← capítulo indexado desde 1
-const versStr = String(versoNum).padStart(4, "0");            // ← versículo como "0001"
-  const libroStr = codigosLibros[libroActual];
-const idCompleto = `${libroStr}${capStr}${versStr}`;          // ← "01010001"
-
-
-
-
-
+    capitulo.forEach((texto, index) => {
+      const versoNum = index + 1;
+      const capStr = String(capituloActual).padStart(2, "0");          // ✅ capítulo indexado desde 0
+      const versStr = String(1000 + versoNum).padStart(4, "0");        // ✅ versículo como "1001"
+      const libroStr = codigosLibros[libroActual];
+      const idCompleto = `${libroStr}${capStr}${versStr}`;
 
       const interlineal = datosInterlineales?.[idCompleto] || null;
 
@@ -573,7 +570,6 @@ const idCompleto = `${libroStr}${capStr}${versStr}`;          // ← "01010001"
     }
   }
 }
-
 
 function renderizarVersiculo(texto, numero, interlineal = null) {
   const contenedor = document.getElementById("resultados");
