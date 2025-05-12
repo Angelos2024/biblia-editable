@@ -486,10 +486,14 @@ function mostrarVersiculo() {
     renderizarVersiculo(verso, versiculoActual + 1);
   } else {
     capitulo.forEach((texto, idx) => {
- const inter = datosInterlineales?.[idx + 1];
+const numeroVerso = idx + 1;
+const inter = datosInterlineales && datosInterlineales[numeroVerso];
 
 
-  renderizarVersiculo(texto, idx + 1, inter);
+
+renderizarVersiculo(texto, numeroVerso, inter);
+console.log("🔍 Interlineal para verso", numeroVerso, inter);
+
 });
 
   }
