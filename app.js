@@ -336,7 +336,6 @@ function buscarVersiculo() {
               }
             }
           }
-
 const libroCodigo = codigosLibros[libroActual];
 
 if (libroCodigo) {
@@ -361,7 +360,7 @@ if (libroCodigo) {
 
       console.log(`📚 Interlineal cargado para ${libroActual} capítulo ${capituloEsperado}:`, Object.keys(datosInterlineales));
       mostrarVersiculo();
-    })
+    }) // ← cierre correcto del .then(json => { ... })
     .catch(() => {
       console.warn("⚠️ No se pudo cargar el interlineal.");
       datosInterlineales = null;
@@ -375,7 +374,7 @@ if (libroCodigo) {
 
 
 console.log("📖 Mostrando", libroActual, "capítulo", capituloActual + 1);
-
+} // ← Esta llave final cierra la función buscarVersiculo()
 
 function normalizarTextoPlano(texto) {
   return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
