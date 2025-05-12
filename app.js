@@ -146,6 +146,49 @@ Object.assign(aliasLibros, {
 
 console.log("Alias generados:", aliasLibros);
 
+// 📚 Códigos numéricos de libros para interlineal
+const codigosLibros = {
+  "Génesis": "01",
+  "Éxodo": "02",
+  "Levítico": "03",
+  "Números": "04",
+  "Deuteronomio": "05",
+  "Josué": "06",
+  "Jueces": "07",
+  "Rut": "08",
+  "1 Samuel": "09",
+  "2 Samuel": "10",
+  "1 Reyes": "11",
+  "2 Reyes": "12",
+  "1 Crónicas": "13",
+  "2 Crónicas": "14",
+  "Esdras": "15",
+  "Nehemías": "16",
+  "Ester": "17",
+  "Job": "18",
+  "Salmos": "19",
+  "Proverbios": "20",
+  "Eclesiastés": "21",
+  "Cantares": "22",
+  "Isaías": "23",
+  "Jeremías": "24",
+  "Lamentaciones": "25",
+  "Ezequiel": "26",
+  "Daniel": "27",
+  "Oseas": "28",
+  "Joel": "29",
+  "Amós": "30",
+  "Abdías": "31",
+  "Jonás": "32",
+  "Miqueas": "33",
+  "Nahúm": "34",
+  "Habacuc": "35",
+  "Sofonías": "36",
+  "Hageo": "37",
+  "Zacarías": "38",
+  "Malaquías": "39"
+};
+
 // (Resto del archivo continúa igual sin modificaciones...)
 
 
@@ -295,35 +338,40 @@ function buscarVersiculo() {
           }
 
           // 🔠 Cargar interlineal si es Génesis
-if (["Génesis"].includes(libroActual)) {
+// 🔠 Cargar interlineal si el libro está soportado
+const libroCodigo = codigosLibros[libroActual];
+if (libroCodigo) {
   const archivo = `interlineal_${normalizarTexto(libroActual)}.json`;
   const url = `https://raw.githubusercontent.com/Angelos2024/biblia-editable/refs/heads/main/dist/interlineal/${archivo}`;
 
   fetch(url)
     .then(r => r.json())
     .then(json => {
- 
-// 🔢 Construir claves de libro y capítulo
-const libroEsperado = "01"; // Génesis
-const capituloEsperado = String(capituloActual + 1).padStart(2, "0"); // "01", "02", etc.
+      const capituloEsperado = String(capituloActual + 1).padStart(2, "0");
 
-console.log("🧩 Cargando interlineal SOLO para capítulo:", capituloEsperado);
+      datosInterlineales = Object.fromEntries(
+        json
+          .filter(item => {
+            const id = item.id || "";
+            const libroId = id.slice(0, 2);     // ej: "01"
+            const capId   = id.slice(2, 4);     // ej: "01"
+            return libroId === libroCodigo && capId === capituloEsperado;
+          })
+          .map(item => [item.id, item.verse])
+      );
 
-datosInterlineales = Object.fromEntries(
-  json
-    .filter(item => {
-      const id = item.id || "";
-      const libroId = id.slice(0, 2);
-      const capId = id.slice(2, 4);
-      return libroId === libroEsperado && capId === capituloEsperado;
+      console.log(`📚 Interlineal cargado para ${libroActual} capítulo ${capituloEsperado}:`, Object.keys(datosInterlineales));
+      mostrarVersiculo();
     })
-    .map(item => [item.id, item.verse])
-);
-
-console.log("📚 Interlineal filtrado:", Object.keys(datosInterlineales));
-
+    .catch(() => {
+      datosInterlineales = null;
+      mostrarVersiculo();
+    });
+} else {
+  datosInterlineales = null;
   mostrarVersiculo();
-})
+}
+
     .catch(() => {
       datosInterlineales = null;
       mostrarVersiculo();
@@ -487,11 +535,12 @@ function mostrarVersiculo() {
     renderizarVersiculo(verso, versiculoActual + 1);
   } else {
 capitulo.forEach((texto, index) => {
-  const versoNum = index + 1;
-  const capStr = String(capituloActual + 1).padStart(2, "0");
+const versoNum = index + 1;
+const capStr = String(capituloActual + 1).padStart(2, "0");
 const versStr = String(versoNum).padStart(4, "0");
-  const idCompleto = `01${capStr}${versStr}`;
-  const interlineal = datosInterlineales?.[idCompleto] || null;
+const libroCodigo = codigosLibros[libroActual] || "01";
+const idCompleto = `${libroCodigo}${capStr}${versStr}`;
+const interlineal = datosInterlineales?.[idCompleto] || null;
   renderizarVersiculo(texto, versoNum, interlineal);
 });
 
