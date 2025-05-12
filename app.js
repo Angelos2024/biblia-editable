@@ -90,6 +90,41 @@ function normalizarTexto(texto) {
 }
 function abreviarLibro(libro) {
   const normalizado = normalizarTexto(libro);
+
+  // Casos especiales del Nuevo Testamento
+  const abreviacionesEspeciales = {
+    "1corintios": "1Co",
+    "2corintios": "2Co",
+    "1tesalonicenses": "1Ts",
+    "2tesalonicenses": "2Ts",
+    "1timoteo": "1Ti",
+    "2timoteo": "2Ti",
+    "1pedro": "1Pe",
+    "2pedro": "2Pe",
+    "1juan": "1Jn",
+    "2juan": "2Jn",
+    "3juan": "3Jn",
+    "hechos": "Hch",
+    "santiago": "Stg",
+    "filemon": "Flm",
+    "judas": "Jud",
+    "apocalipsis": "Ap",
+    "mateo": "Mat",
+    "marcos": "Mar",
+    "lucas": "Luc",
+    "juan": "Jn",
+    "romanos": "Rom",
+    "galatas": "Gal",
+    "efesios": "Efe",
+    "filipenses": "Flp",
+    "colosenses": "Col",
+    "hebreos": "Heb",
+    "tito": "Tit"
+  };
+
+  if (abreviacionesEspeciales[normalizado]) return abreviacionesEspeciales[normalizado];
+
+  // Por defecto (Antiguo Testamento)
   return normalizado.charAt(0).toUpperCase() + normalizado.slice(1, 3);
 }
 
