@@ -348,16 +348,17 @@ function buscarVersiculo() {
               .then(json => {
                 const capituloEsperado = String(capituloActual + 1).padStart(2, "0");
 
-                datosInterlineales = Object.fromEntries(
-                  json
-                    .filter(item => {
-                      const id = item.id || "";
-                      const libroId = id.slice(0, 2);
-                      const capId = id.slice(2, 4);
-                      return libroId === libroCodigo && capId === capituloEsperado;
-                    })
-                    .map(item => [item.id, item.verse])
-                );
+datosInterlineales = Object.fromEntries(
+  json
+    .filter(item => {
+      const id = item.id || "";
+      const libroId = id.slice(0, 2);     // "01"
+      const capId   = id.slice(2, 4);     // "01"
+      return libroId === libroCodigo && capId === capituloEsperado;
+    })
+    .map(item => [item.id, item.verse])
+);
+
 
                 console.log(`📚 Interlineal cargado para ${libroActual} capítulo ${capituloEsperado}:`, Object.keys(datosInterlineales));
                 mostrarVersiculo();
@@ -521,11 +522,15 @@ function mostrarVersiculo() {
     renderizarVersiculo(verso, versiculoActual + 1);
   } else {
 capitulo.forEach((texto, index) => {
-const versoNum = index + 1;
-const capStr = String(capituloActual + 1).padStart(2, "0");
-const versStr = String(versoNum).padStart(4, "0");
-const idCompleto = `01${capStr}${versStr}`; // ej: 0100010001
-const interlineal = datosInterlineales?.[idCompleto] || null;
+  const versoNum = index + 1;
+  const capStr = String(capituloActual + 1).padStart(2, "0"); // Capítulo
+  const versStr = String(versoNum).padStart(2, "0");          // Versículo
+  const libroStr = codigosLibros[libroActual];                // "01"
+
+  const idCompleto = `${libroStr}${capStr}${versStr}`; // ← ej: "01001001"
+  const interlineal = datosInterlineales?.[idCompleto] || null;
+
+  console.log("📦 Renderizando versículo", versoNum, "con interlineal:", interlineal);
   renderizarVersiculo(texto, versoNum, interlineal);
 });
 
