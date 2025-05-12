@@ -346,7 +346,7 @@ function buscarVersiculo() {
             fetch(urlInter)
               .then(r => r.json())
               .then(json => {
-                const capituloEsperado = String(capituloActual + 1).padStart(2, "0");
+                const capituloEsperado = String(capituloActual).padStart(2, "0");
 
 datosInterlineales = Object.fromEntries(
   json
