@@ -532,7 +532,8 @@ const capStr = String(capituloReal).padStart(2, "0");
           // ✅ capítulo indexado desde 0
     const versStr = String(1000 + versoNum).padStart(4, "0");          // ✅ versículo como "1001"
     const libroStr = codigosLibros[libroActual];                      // "01"
-const nombreAbreviado = normalizarTexto(libroActual).slice(0, 3);
+const nombreAbreviado = abreviarLibro(libroActual); // Devuelve "Gen"
+
 
 const idCompleto = `${nombreAbreviado}_${capituloActual + 1}_${versoNum}`; // Ej: "Gen_1_1"
 
@@ -552,7 +553,8 @@ const capStr = String(capituloReal).padStart(2, "0");
           // ✅ capítulo indexado desde 0
       const versStr = String(1000 + versoNum).padStart(4, "0");        // ✅ versículo como "1001"
       const libroStr = codigosLibros[libroActual];
-      const nombreAbreviado = normalizarTexto(libroActual).slice(0, 3);
+      const nombreAbreviado = abreviarLibro(libroActual); // Devuelve "Gen"
+
 
 const idCompleto = `${nombreAbreviado}_${capituloActual + 1}_${versoNum}`; // Ej: "Gen_1_1"
 
