@@ -346,18 +346,18 @@ function buscarVersiculo() {
             fetch(urlInter)
               .then(r => r.json())
               .then(json => {
-                const capituloEsperado = String(capituloActual + 1).padStart(2, "0");
+                const nombreAbreviado = libroActual.replace(/\s+/g, '').slice(0, 3); // Ej: "Génesis" → "Gen"
+const capituloReal = capituloActual + 1; // Porque comienza en 0
 
 datosInterlineales = Object.fromEntries(
   json
     .filter(item => {
       const id = item.id || "";
-      const libroId = id.slice(0, 2);     // "01"
-      const capId   = id.slice(2, 4);     // "01"
-      return libroId === libroCodigo && capId === capituloEsperado;
+      return id.startsWith(`${nombreAbreviado}_${capituloReal}_`);
     })
     .map(item => [item.id, item.verse])
 );
+
 
 
                 console.log(`📚 Interlineal cargado para ${libroActual} capítulo ${capituloEsperado}:`, Object.keys(datosInterlineales));
@@ -527,7 +527,9 @@ const capStr = String(capituloReal).padStart(2, "0");
           // ✅ capítulo indexado desde 0
     const versStr = String(1000 + versoNum).padStart(4, "0");          // ✅ versículo como "1001"
     const libroStr = codigosLibros[libroActual];                      // "01"
-    const idCompleto = `${libroStr}${capStr}${versStr}`;              // "01001001"
+    const nombreAbreviado = libroActual.replace(/\s+/g, '').slice(0, 3);
+const idCompleto = `${nombreAbreviado}_${capituloActual + 1}_${versoNum}`; // Ej: "Gen_1_1"
+
 
     const inter = datosInterlineales?.[idCompleto] || null;
 
@@ -544,7 +546,9 @@ const capStr = String(capituloReal).padStart(2, "0");
           // ✅ capítulo indexado desde 0
       const versStr = String(1000 + versoNum).padStart(4, "0");        // ✅ versículo como "1001"
       const libroStr = codigosLibros[libroActual];
-      const idCompleto = `${libroStr}${capStr}${versStr}`;
+      const nombreAbreviado = libroActual.replace(/\s+/g, '').slice(0, 3);
+const idCompleto = `${nombreAbreviado}_${capituloActual + 1}_${versoNum}`; // Ej: "Gen_1_1"
+
 
       const interlineal = datosInterlineales?.[idCompleto] || null;
 
