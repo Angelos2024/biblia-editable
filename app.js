@@ -343,6 +343,7 @@ console.log("📚 Interlineal cargado:", datosInterlineales);
     buscarPalabraGlobal(entrada);
   }
 }
+console.log("📖 Mostrando", libroActual, "capítulo", capituloActual + 1);
 
 
 
@@ -559,6 +560,8 @@ span.appendChild(traduccion);
 
     versoBox.appendChild(interDiv);
   }
+  console.log("📦 Renderizando versículo", numero, "con interlineal:", interlineal);
+
 
   // 📖 Texto del versículo editable
   const p = document.createElement("p");
