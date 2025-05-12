@@ -362,7 +362,8 @@ datosInterlineales = Object.fromEntries(
     })
     .map(item => [item.id, item.verse])
 );
-
+console.log("🔎 Test directo acceso Gen_1_1:", datosInterlineales["Gen_1_1"]);
+console.log("🔑 Incluye Gen_1_1:", Object.keys(datosInterlineales).includes("Gen_1_1"));
 
 console.log("🔍 Entradas recibidas del interlineal:", json.map(x => x.id));
 
