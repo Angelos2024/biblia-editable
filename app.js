@@ -316,8 +316,8 @@ json.forEach(item => {
   const capitulo = id.slice(2, 4);
   const versiculo = id.slice(4);
   if (libro === "01" && capitulo === capituloId) {
-    const versoNum = parseInt(versiculo, 10);
-    datosInterlineales[versoNum] = item.verse;
+datosInterlineales[id] = item.verse; // ahora usamos el ID completo como clave
+
   }
 });
 console.log("📚 Interlineal cargado:", datosInterlineales);
@@ -489,10 +489,13 @@ function mostrarVersiculo() {
     renderizarVersiculo(verso, versiculoActual + 1);
   } else {
 capitulo.forEach((texto, idx) => {
-  const versoNumero = idx + 1;
-  const interlineal = datosInterlineales?.[versoNumero] || null;
-  renderizarVersiculo(texto, versoNumero, interlineal);
+  const versoNum = idx + 1;
+  const idCompleto = `01${String(capituloActual + 1).padStart(2, "0")}${String(versoNum).padStart(2, "0")}`;
+  const inter = datosInterlineales?.[idCompleto] || null;
+  renderizarVersiculo(texto, versoNum, inter);
 });
+
+
 console.log("🧪 Verso #", idx + 1, "texto:", texto, "interlineal:", datosInterlineales?.[idx + 1]);
 
 
