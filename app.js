@@ -523,9 +523,9 @@ function mostrarVersiculo() {
     // 🔢 ID único de versículo si hay interlineal
     const versoNum = versiculoActual + 1;
     const capStr = String(capituloActual + 1).padStart(2, "0");
-    const versStr = String(versoNum).padStart(2, "0");
+ const versStr = String(versoNum).padStart(4, "0"); // ✅ esto da "0015"
     const libroStr = codigosLibros[libroActual]; // "01"
-    const idCompleto = `${libroStr}${capStr}${versStr}`; // "01001001"
+  const idCompleto = `${libroStr}${capStr}${versStr}`; // ✅ ej: 01000015
     const inter = datosInterlineales?.[idCompleto] || null;
 
     console.log("📦 Renderizando versículo único:", versoNum);
@@ -536,7 +536,7 @@ function mostrarVersiculo() {
     capitulo.forEach((texto, index) => {
       const versoNum = index + 1;
       const capStr = String(capituloActual + 1).padStart(2, "0"); // "01"
-      const versStr = String(versoNum).padStart(2, "0");          // "01"
+const versStr = String(versoNum).padStart(4, "0");
       const libroStr = codigosLibros[libroActual];                // "01"
       const idCompleto = `${libroStr}${capStr}${versStr}`;        // "01001001"
 
