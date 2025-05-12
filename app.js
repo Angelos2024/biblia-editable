@@ -522,7 +522,17 @@ function renderizarVersiculo(texto, numero, interlineal = null) {
         span.appendChild(document.createElement("br"));
       }
 
-      span.innerHTML += `${palabra.word}<br><small>${palabra.text}</small>`;
+     const hebreo = document.createElement("div");
+hebreo.textContent = palabra.word;
+hebreo.dir = "rtl";
+hebreo.style.fontWeight = "bold";
+
+const traduccion = document.createElement("div");
+traduccion.innerHTML = `<small>${palabra.text}</small>`;
+
+span.appendChild(hebreo);
+span.appendChild(traduccion);
+
       interDiv.appendChild(span);
     });
 
