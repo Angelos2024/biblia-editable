@@ -337,9 +337,8 @@ function buscarVersiculo() {
             }
           }
 
-          // 🔠 Cargar interlineal si es Génesis
-// 🔠 Cargar interlineal si el libro está soportado
 const libroCodigo = codigosLibros[libroActual];
+
 if (libroCodigo) {
   const archivo = `interlineal_${normalizarTexto(libroActual)}.json`;
   const url = `https://raw.githubusercontent.com/Angelos2024/biblia-editable/refs/heads/main/dist/interlineal/${archivo}`;
@@ -353,17 +352,18 @@ if (libroCodigo) {
         json
           .filter(item => {
             const id = item.id || "";
-            const libroId = id.slice(0, 2);     // ej: "01"
-            const capId   = id.slice(2, 4);     // ej: "01"
+            const libroId = id.slice(0, 2);
+            const capId = id.slice(2, 4);
             return libroId === libroCodigo && capId === capituloEsperado;
           })
           .map(item => [item.id, item.verse])
       );
 
-      console.log(`📚 Interlineal cargado para ${libroActual} capítulo ${capituloEsperado}:`, Object.keys(datosInterlineales));
+      console.log("📚 Interlineal cargado correctamente:", Object.keys(datosInterlineales));
       mostrarVersiculo();
     })
     .catch(() => {
+      console.warn("⚠️ No se pudo cargar el interlineal.");
       datosInterlineales = null;
       mostrarVersiculo();
     });
@@ -372,25 +372,7 @@ if (libroCodigo) {
   mostrarVersiculo();
 }
 
-    .catch(() => {
-      datosInterlineales = null;
-      mostrarVersiculo();
-    });
-} else {
-  datosInterlineales = null;
-  mostrarVersiculo();
-}
-
-        });
-      });
-
-  } else {
-    // Si no coincide con formato versículo, hacer búsqueda global
-    buscarPalabraGlobal(entrada);
-  }
-}
 console.log("📖 Mostrando", libroActual, "capítulo", capituloActual + 1);
-
 
 
 function normalizarTextoPlano(texto) {
@@ -538,8 +520,7 @@ capitulo.forEach((texto, index) => {
 const versoNum = index + 1;
 const capStr = String(capituloActual + 1).padStart(2, "0");
 const versStr = String(versoNum).padStart(4, "0");
-const libroCodigo = codigosLibros[libroActual] || "01";
-const idCompleto = `${libroCodigo}${capStr}${versStr}`;
+const idCompleto = `01${capStr}${versStr}`; // ej: 0100010001
 const interlineal = datosInterlineales?.[idCompleto] || null;
   renderizarVersiculo(texto, versoNum, interlineal);
 });
