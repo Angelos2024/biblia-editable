@@ -524,8 +524,8 @@ function mostrarVersiculo() {
     const versoNum = versiculoActual + 1;
 const capStr = String(capituloActual + 1).padStart(2, "0");   // ← capítulo indexado desde 1
 const versStr = String(versoNum).padStart(4, "0");            // ← versículo como "0001"
-const idCompleto = `${libroStr}${capStr}${versStr}`;          // ← "01010001"
     const libroStr = codigosLibros[libroActual]; // "01"
+const idCompleto = `${libroStr}${capStr}${versStr}`;          // ← "01010001"
     const inter = datosInterlineales?.[idCompleto] || null;
 
     console.log("📦 Renderizando versículo único:", versoNum);
@@ -537,9 +537,10 @@ capitulo.forEach((texto, index) => {
   const versoNum = index + 1;
 const capStr = String(capituloActual + 1).padStart(2, "0");   // ← capítulo indexado desde 1
 const versStr = String(versoNum).padStart(4, "0");            // ← versículo como "0001"
+  const libroStr = codigosLibros[libroActual];
 const idCompleto = `${libroStr}${capStr}${versStr}`;          // ← "01010001"
 
-  const libroStr = codigosLibros[libroActual];
+
 
 
 
