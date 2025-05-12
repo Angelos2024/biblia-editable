@@ -336,47 +336,47 @@ function buscarVersiculo() {
               }
             }
           }
-const libroCodigo = codigosLibros[libroActual];
 
-if (libroCodigo) {
-  const archivo = `interlineal_${normalizarTexto(libroActual)}.json`;
-  const url = `https://raw.githubusercontent.com/Angelos2024/biblia-editable/refs/heads/main/dist/interlineal/${archivo}`;
+          // 🔠 Cargar interlineal dinámicamente si el libro tiene soporte
+          const libroCodigo = codigosLibros[libroActual];
+          if (libroCodigo) {
+            const archivo = `interlineal_${normalizarTexto(libroActual)}.json`;
+            const urlInter = `https://raw.githubusercontent.com/Angelos2024/biblia-editable/refs/heads/main/dist/interlineal/${archivo}`;
 
-  fetch(url)
-    .then(r => r.json())
-    .then(json => {
-      const capituloEsperado = String(capituloActual + 1).padStart(2, "0");
+            fetch(urlInter)
+              .then(r => r.json())
+              .then(json => {
+                const capituloEsperado = String(capituloActual + 1).padStart(2, "0");
 
-      datosInterlineales = Object.fromEntries(
-        json
-          .filter(item => {
-            const id = item.id || "";
-            const libroId = id.slice(0, 2);
-            const capId = id.slice(2, 4);
-            return libroId === libroCodigo && capId === capituloEsperado;
-          })
-          .map(item => [item.id, item.verse])
-      );
+                datosInterlineales = Object.fromEntries(
+                  json
+                    .filter(item => {
+                      const id = item.id || "";
+                      const libroId = id.slice(0, 2);
+                      const capId = id.slice(2, 4);
+                      return libroId === libroCodigo && capId === capituloEsperado;
+                    })
+                    .map(item => [item.id, item.verse])
+                );
 
-      console.log(`📚 Interlineal cargado para ${libroActual} capítulo ${capituloEsperado}:`, Object.keys(datosInterlineales));
-      mostrarVersiculo();
-    }) // ← cierre correcto del .then(json => { ... })
-    .catch(() => {
-      console.warn("⚠️ No se pudo cargar el interlineal.");
-      datosInterlineales = null;
-      mostrarVersiculo();
-    });
-
-} else {
-  datosInterlineales = null;
-  mostrarVersiculo();
+                console.log(`📚 Interlineal cargado para ${libroActual} capítulo ${capituloEsperado}:`, Object.keys(datosInterlineales));
+                mostrarVersiculo();
+              })
+              .catch(() => {
+                datosInterlineales = null;
+                mostrarVersiculo();
+              });
+          } else {
+            datosInterlineales = null;
+            mostrarVersiculo();
+          }
+        });
+      });
+  } else {
+    // Si no coincide con formato versículo, hacer búsqueda global
+    buscarPalabraGlobal(entrada);
+  }
 }
-
-
-console.log("📖 Mostrando", libroActual, "capítulo", capituloActual + 1);
-    }); // ← cierre de callback de cargarDesdeDrive
-  }); // ← cierre del .then(data => { ... })
-} // ← cierre final de buscarVersiculo
 
 
 function normalizarTextoPlano(texto) {
