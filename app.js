@@ -435,6 +435,12 @@ function renderizarPaginaResultados(palabra) {
   resultadosDiv.appendChild(paginacion);
 }
 
+function libroCodigo(nombre) {
+  const libros = [...]; // usa el mismo array de libros en orden
+  const idx = libros.findIndex(l => normalizarTexto(l) === normalizarTexto(nombre));
+  return idx + 1; // empieza desde 1
+}
+
 
 function mostrarVersiculo() {
   const output = document.getElementById("resultados");
@@ -447,23 +453,24 @@ function mostrarVersiculo() {
     return;
   }
 
-  capitulo.forEach((texto, idx) => {
-    let inter = null;
+let interPorVerso = {};
+if (Array.isArray(datosInterlineales)) {
+  const capStr = String(libroCodigo(libroActual)).padStart(2, '0') + String(capituloActual + 1).padStart(3, '0');
 
-    if (Array.isArray(datosInterlineales)) {
-      const actual = datosInterlineales[idx];
+  datosInterlineales
+    .filter(v => v.id && v.id.startsWith(capStr))
+    .forEach(v => {
+      const num = parseInt(v.id.slice(-2), 10);
+      interPorVerso[num] = v.verse;
+    });
+}
 
-      if (Array.isArray(actual)) {
-        inter = actual; // formato tipo [[...], [...]]
-      } else if (actual && Array.isArray(actual.verse)) {
-        inter = actual.verse; // formato [{ verse: [...] }]
-      } else if (Array.isArray(datosInterlineales.verse)) {
-        inter = datosInterlineales.verse; // caso único sin separación por capítulo
-      }
-    }
+capitulo.forEach((texto, idx) => {
+  const inter = interPorVerso[idx + 1] || null;
+  renderizarVersiculo(texto, idx + 1, inter);
+});
 
-    renderizarVersiculo(texto, idx + 1, inter);
-  });
+
 
   // Notas
   if (usuarioGoogle && libroActual && typeof capituloActual !== "undefined") {
