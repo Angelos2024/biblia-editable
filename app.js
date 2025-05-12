@@ -301,8 +301,7 @@ if (["Génesis"].includes(libroActual)) {
   fetch(url)
     .then(r => r.json())
     .then(json => {
-  console.log("✅ Interlineal recibido del fetch:", json);
-  console.log("🔍 Primer objeto:", json[0]);
+ 
 
   datosInterlineales = json;
   mostrarVersiculo();
@@ -470,8 +469,7 @@ function mostrarVersiculo() {
   } else {
     capitulo.forEach((texto, idx) => {
   const inter = datosInterlineales?.[idx]?.verse;
-  console.log(`➡ Verso ${idx + 1}`, texto);
-  console.log(`   Interlineal:`, inter);
+
   renderizarVersiculo(texto, idx + 1, inter);
 });
 
@@ -501,9 +499,12 @@ function mostrarVersiculo() {
 
 function renderizarVersiculo(texto, numero, interlineal = null) {
   const contenedor = document.getElementById("resultados");
-  const p = document.createElement("p");
 
-  // Si hay interlineal, renderizar encima
+  // 🧱 Contenedor de todo el versículo
+  const versoBox = document.createElement("div");
+  versoBox.className = "verso-box";
+
+  // 🧾 Interlineal encima (si hay)
   if (Array.isArray(interlineal)) {
     const interDiv = document.createElement("div");
     interDiv.className = "interlineal";
@@ -521,20 +522,22 @@ function renderizarVersiculo(texto, numero, interlineal = null) {
         span.appendChild(document.createElement("br"));
       }
 
-      // Agrega la palabra hebrea y su traducción
       span.innerHTML += `${palabra.word}<br><small>${palabra.text}</small>`;
       interDiv.appendChild(span);
     });
 
-    contenedor.appendChild(interDiv);
+    versoBox.appendChild(interDiv);
   }
 
-  // Versículo normal con palabras editables
+  // 📖 Texto del versículo editable
+  const p = document.createElement("p");
   p.innerHTML = `<b>${numero}</b> ` + texto
     .split(" ")
     .map(pal => `<span class="verse-word" onclick="editarPalabra(this)">${pal}</span>`)
     .join(" ");
-  contenedor.appendChild(p);
+
+  versoBox.appendChild(p);
+  contenedor.appendChild(versoBox);
 }
 
 
