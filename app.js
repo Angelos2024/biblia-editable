@@ -88,6 +88,11 @@ function normalizarTexto(texto) {
     .replace(/\s+/g, "") // quita espacios
     .replace(/\./g, ""); // quita puntos si alguien pone "1. samuel"
 }
+function abreviarLibro(libro) {
+  const normalizado = normalizarTexto(libro);
+  return normalizado.charAt(0).toUpperCase() + normalizado.slice(1, 3);
+}
+
 
 
 const aliasLibros = {};
@@ -346,7 +351,7 @@ function buscarVersiculo() {
             fetch(urlInter)
               .then(r => r.json())
               .then(json => {
-                const nombreAbreviado = libroActual.replace(/\s+/g, '').slice(0, 3); // Ej: "Génesis" → "Gen"
+                const nombreAbreviado = abreviarLibro(libroActual); // Ej: "Génesis" → "Gen"
 const capituloReal = capituloActual + 1; // Porque comienza en 0
 
 datosInterlineales = Object.fromEntries(
@@ -527,7 +532,8 @@ const capStr = String(capituloReal).padStart(2, "0");
           // ✅ capítulo indexado desde 0
     const versStr = String(1000 + versoNum).padStart(4, "0");          // ✅ versículo como "1001"
     const libroStr = codigosLibros[libroActual];                      // "01"
-    const nombreAbreviado = libroActual.replace(/\s+/g, '').slice(0, 3);
+const nombreAbreviado = normalizarTexto(libroActual).slice(0, 3);
+
 const idCompleto = `${nombreAbreviado}_${capituloActual + 1}_${versoNum}`; // Ej: "Gen_1_1"
 
 
@@ -546,7 +552,8 @@ const capStr = String(capituloReal).padStart(2, "0");
           // ✅ capítulo indexado desde 0
       const versStr = String(1000 + versoNum).padStart(4, "0");        // ✅ versículo como "1001"
       const libroStr = codigosLibros[libroActual];
-      const nombreAbreviado = libroActual.replace(/\s+/g, '').slice(0, 3);
+      const nombreAbreviado = normalizarTexto(libroActual).slice(0, 3);
+
 const idCompleto = `${nombreAbreviado}_${capituloActual + 1}_${versoNum}`; // Ej: "Gen_1_1"
 
 
