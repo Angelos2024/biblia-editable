@@ -1,5 +1,10 @@
 // app.js
 let datosInterlineales = null;
+let textoOriginal = [];
+let textoEditado = {};
+let libroActual = "";
+let capituloActual = 0;
+let versiculoActual = null;
 
 
 const fuentesRVR = {
@@ -225,8 +230,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function buscarVersiculo() {
   const entrada = document.getElementById("searchInput").value.trim();
-
-  // Detectar si la entrada es tipo versículo (ej: Juan 3:16)
   const match = entrada.match(/^([\wáéíóúÁÉÍÓÚñÑ\.]+)\s+(\d+)(?::(\d+))?$/);
 
   if (match) {
@@ -239,9 +242,6 @@ function buscarVersiculo() {
 
     const claveLocal = `global_${libroActual}`;
     const claveCap = `${libroActual}_${capituloActual}`;
-    const localGlobal = localStorage.getItem(claveLocal);
-    const localCap = localStorage.getItem(claveCap);
-
     const url = fuentesRVR[libroActual];
     if (!url) {
       alert("Libro no disponible todavía.");
@@ -257,7 +257,7 @@ function buscarVersiculo() {
       .then(data => {
         textoOriginal = data;
 
-        const datosGlobales = localStorage.getItem(`global_${libroActual}`);
+        const datosGlobales = localStorage.getItem(claveLocal);
         if (datosGlobales) {
           try {
             const reemplazo = JSON.parse(datosGlobales);
@@ -273,11 +273,11 @@ function buscarVersiculo() {
         const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
 
         cargarDesdeDrive(nombreTexto, (contenidoDrive) => {
-          const localCap = localStorage.getItem(`${libroActual}_${capituloActual}`);
+          const localCap = localStorage.getItem(claveCap);
           if (contenidoDrive) {
             for (const verso in contenidoDrive) {
               const idx = parseInt(verso) - 1;
-              if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+              if (textoOriginal[capituloActual]?.[idx] !== undefined) {
                 textoOriginal[capituloActual][idx] = contenidoDrive[verso];
               }
             }
@@ -287,39 +287,32 @@ function buscarVersiculo() {
             const override = JSON.parse(localCap);
             for (const verso in override) {
               const idx = parseInt(verso) - 1;
-              if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
+              if (textoOriginal[capituloActual]?.[idx] !== undefined) {
                 textoOriginal[capituloActual][idx] = override[verso];
               }
             }
           }
 
-          // 🔠 Cargar interlineal si es Génesis
-if (["Génesis"].includes(libroActual)) {
-  const archivo = `interlineal_${normalizarTexto(libroActual)}.json`;
-  const url = `https://raw.githubusercontent.com/Angelos2024/biblia-editable/refs/heads/main/dist/interlineal/${archivo}`;
+          // 🧾 Cargar interlineal del capítulo correspondiente
+          const archivo = `interlineal_${normalizarTexto(libroActual)}.json`;
+          const urlInter = `https://raw.githubusercontent.com/Angelos2024/biblia-editable/refs/heads/main/dist/interlineal/${archivo}`;
 
-  fetch(url)
-    .then(r => r.json())
-    .then(json => {
- 
-
-  datosInterlineales = json;
-  mostrarVersiculo();
-})
-    .catch(() => {
-      datosInterlineales = null;
-      mostrarVersiculo();
-    });
-} else {
-  datosInterlineales = null;
-  mostrarVersiculo();
-}
-
+          fetch(urlInter)
+            .then(res => res.json())
+            .then(json => {
+              datosInterlineales = json[capituloActual] || null;
+              mostrarVersiculo();
+            })
+            .catch(err => {
+              console.warn("⚠️ No hay interlineal para este libro:", err);
+              datosInterlineales = null;
+              mostrarVersiculo(); // continuar sin interlineal
+            });
         });
       });
 
   } else {
-    // Si no coincide con formato versículo, hacer búsqueda global
+    // Búsqueda global por palabra
     buscarPalabraGlobal(entrada);
   }
 }
@@ -459,23 +452,25 @@ function mostrarVersiculo() {
     return;
   }
 
-  if (versiculoActual !== null) {
-    const verso = capitulo[versiculoActual];
-    if (!verso) {
-      output.innerHTML = "<p>Versículo no encontrado.</p>";
-      return;
+  capitulo.forEach((texto, idx) => {
+    let inter = null;
+
+    if (Array.isArray(datosInterlineales)) {
+      const actual = datosInterlineales[idx];
+
+      if (Array.isArray(actual)) {
+        inter = actual; // formato tipo [[...], [...]]
+      } else if (actual && Array.isArray(actual.verse)) {
+        inter = actual.verse; // formato [{ verse: [...] }]
+      } else if (Array.isArray(datosInterlineales.verse)) {
+        inter = datosInterlineales.verse; // caso único sin separación por capítulo
+      }
     }
-    renderizarVersiculo(verso, versiculoActual + 1);
-  } else {
-    capitulo.forEach((texto, idx) => {
-  const inter = datosInterlineales?.[idx]?.verse;
 
-  renderizarVersiculo(texto, idx + 1, inter);
-});
+    renderizarVersiculo(texto, idx + 1, inter);
+  });
 
-  }
-
-  // 🔁 Cargar notas desde Drive si hay sesión y estamos en un capítulo válido
+  // Notas
   if (usuarioGoogle && libroActual && typeof capituloActual !== "undefined") {
     const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
     cargarNotasDesdeDrive(nombreNotas, (notasDrive) => {
@@ -489,7 +484,6 @@ function mostrarVersiculo() {
       }
     });
   } else {
-    // Si no hay sesión, igual aplicamos notas locales si existen
     if (typeof aplicarNotasDesdeLocal === "function") {
       aplicarNotasDesdeLocal();
     }
