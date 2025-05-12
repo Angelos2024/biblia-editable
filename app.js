@@ -1,10 +1,5 @@
 // app.js
 let datosInterlineales = null;
-let textoOriginal = [];
-let textoEditado = {};
-let libroActual = "";
-let capituloActual = 0;
-let versiculoActual = null;
 
 
 const fuentesRVR = {
@@ -154,6 +149,11 @@ console.log("Alias generados:", aliasLibros);
 
 
 
+let textoOriginal = [];
+let textoEditado = {};
+let libroActual = "";
+let capituloActual = 0;
+let versiculoActual = null;
 
 function poblarDropdowns() {
   const libroSelect = document.getElementById("libroSelect");
@@ -225,6 +225,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function buscarVersiculo() {
   const entrada = document.getElementById("searchInput").value.trim();
+
+  // Detectar si la entrada es tipo versículo (ej: Juan 3:16)
   const match = entrada.match(/^([\wáéíóúÁÉÍÓÚñÑ\.]+)\s+(\d+)(?::(\d+))?$/);
 
   if (match) {
@@ -237,6 +239,9 @@ function buscarVersiculo() {
 
     const claveLocal = `global_${libroActual}`;
     const claveCap = `${libroActual}_${capituloActual}`;
+    const localGlobal = localStorage.getItem(claveLocal);
+    const localCap = localStorage.getItem(claveCap);
+
     const url = fuentesRVR[libroActual];
     if (!url) {
       alert("Libro no disponible todavía.");
@@ -252,7 +257,7 @@ function buscarVersiculo() {
       .then(data => {
         textoOriginal = data;
 
-        const datosGlobales = localStorage.getItem(claveLocal);
+        const datosGlobales = localStorage.getItem(`global_${libroActual}`);
         if (datosGlobales) {
           try {
             const reemplazo = JSON.parse(datosGlobales);
@@ -268,11 +273,11 @@ function buscarVersiculo() {
         const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
 
         cargarDesdeDrive(nombreTexto, (contenidoDrive) => {
-          const localCap = localStorage.getItem(claveCap);
+          const localCap = localStorage.getItem(`${libroActual}_${capituloActual}`);
           if (contenidoDrive) {
             for (const verso in contenidoDrive) {
               const idx = parseInt(verso) - 1;
-              if (textoOriginal[capituloActual]?.[idx] !== undefined) {
+              if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
                 textoOriginal[capituloActual][idx] = contenidoDrive[verso];
               }
             }
@@ -282,32 +287,39 @@ function buscarVersiculo() {
             const override = JSON.parse(localCap);
             for (const verso in override) {
               const idx = parseInt(verso) - 1;
-              if (textoOriginal[capituloActual]?.[idx] !== undefined) {
+              if (textoOriginal[capituloActual] && textoOriginal[capituloActual][idx] !== undefined) {
                 textoOriginal[capituloActual][idx] = override[verso];
               }
             }
           }
 
-          // 🧾 Cargar interlineal del capítulo correspondiente
-          const archivo = `interlineal_${normalizarTexto(libroActual)}.json`;
-          const urlInter = `https://raw.githubusercontent.com/Angelos2024/biblia-editable/refs/heads/main/dist/interlineal/${archivo}`;
+          // 🔠 Cargar interlineal si es Génesis
+if (["Génesis"].includes(libroActual)) {
+  const archivo = `interlineal_${normalizarTexto(libroActual)}.json`;
+  const url = `https://raw.githubusercontent.com/Angelos2024/biblia-editable/refs/heads/main/dist/interlineal/${archivo}`;
 
-          fetch(urlInter)
-            .then(res => res.json())
-            .then(json => {
-              datosInterlineales = json[capituloActual] || null;
-              mostrarVersiculo();
-            })
-            .catch(err => {
-              console.warn("⚠️ No hay interlineal para este libro:", err);
-              datosInterlineales = null;
-              mostrarVersiculo(); // continuar sin interlineal
-            });
+  fetch(url)
+    .then(r => r.json())
+    .then(json => {
+ 
+
+  datosInterlineales = json;
+  mostrarVersiculo();
+})
+    .catch(() => {
+      datosInterlineales = null;
+      mostrarVersiculo();
+    });
+} else {
+  datosInterlineales = null;
+  mostrarVersiculo();
+}
+
         });
       });
 
   } else {
-    // Búsqueda global por palabra
+    // Si no coincide con formato versículo, hacer búsqueda global
     buscarPalabraGlobal(entrada);
   }
 }
@@ -434,12 +446,6 @@ function renderizarPaginaResultados(palabra) {
 
   resultadosDiv.appendChild(paginacion);
 }
-function libroCodigo(nombre) {
-  const libros = librosOrdenados;
-  const idx = libros.findIndex(l => normalizarTexto(l) === normalizarTexto(nombre));
-  return idx + 1; // Devuelve 1 para Génesis, 2 para Éxodo, etc.
-}
-
 
 
 function mostrarVersiculo() {
@@ -453,26 +459,23 @@ function mostrarVersiculo() {
     return;
   }
 
-let interPorVerso = {};
-if (Array.isArray(datosInterlineales)) {
-  const capStr = String(libroCodigo(libroActual)).padStart(2, '0') + String(capituloActual + 1).padStart(3, '0');
+  if (versiculoActual !== null) {
+    const verso = capitulo[versiculoActual];
+    if (!verso) {
+      output.innerHTML = "<p>Versículo no encontrado.</p>";
+      return;
+    }
+    renderizarVersiculo(verso, versiculoActual + 1);
+  } else {
+    capitulo.forEach((texto, idx) => {
+  const inter = datosInterlineales?.[idx]?.verse;
 
-  datosInterlineales
-    .filter(v => v.id && v.id.startsWith(capStr))
-    .forEach(v => {
-      const num = parseInt(v.id.slice(-2), 10);
-      interPorVerso[num] = v.verse;
-    });
-}
-
-capitulo.forEach((texto, idx) => {
-  const inter = interPorVerso[idx + 1] || null;
   renderizarVersiculo(texto, idx + 1, inter);
 });
 
+  }
 
-
-  // Notas
+  // 🔁 Cargar notas desde Drive si hay sesión y estamos en un capítulo válido
   if (usuarioGoogle && libroActual && typeof capituloActual !== "undefined") {
     const nombreNotas = `BibliaEditable_${libroActual}_${capituloActual + 1}_notas.json`;
     cargarNotasDesdeDrive(nombreNotas, (notasDrive) => {
@@ -486,6 +489,7 @@ capitulo.forEach((texto, idx) => {
       }
     });
   } else {
+    // Si no hay sesión, igual aplicamos notas locales si existen
     if (typeof aplicarNotasDesdeLocal === "function") {
       aplicarNotasDesdeLocal();
     }
