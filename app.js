@@ -434,12 +434,12 @@ function renderizarPaginaResultados(palabra) {
 
   resultadosDiv.appendChild(paginacion);
 }
-
 function libroCodigo(nombre) {
-  const libros = [...]; // usa el mismo array de libros en orden
+  const libros = librosOrdenados;
   const idx = libros.findIndex(l => normalizarTexto(l) === normalizarTexto(nombre));
-  return idx + 1; // empieza desde 1
+  return idx + 1; // Devuelve 1 para Génesis, 2 para Éxodo, etc.
 }
+
 
 
 function mostrarVersiculo() {
