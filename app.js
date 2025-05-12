@@ -359,7 +359,7 @@ if (libroCodigo) {
           .map(item => [item.id, item.verse])
       );
 
-      console.log("📚 Interlineal cargado correctamente:", Object.keys(datosInterlineales));
+      console.log(`📚 Interlineal cargado para ${libroActual} capítulo ${capituloEsperado}:`, Object.keys(datosInterlineales));
       mostrarVersiculo();
     })
     .catch(() => {
@@ -367,10 +367,12 @@ if (libroCodigo) {
       datosInterlineales = null;
       mostrarVersiculo();
     });
+
 } else {
   datosInterlineales = null;
   mostrarVersiculo();
 }
+
 
 console.log("📖 Mostrando", libroActual, "capítulo", capituloActual + 1);
 
