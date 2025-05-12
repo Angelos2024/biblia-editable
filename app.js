@@ -305,21 +305,23 @@ if (["Génesis"].includes(libroActual)) {
  
 
   // Filtrar solo el capítulo actual
-const capituloId = String(capituloActual + 1).padStart(2, "2"); // "01", "02", etc.
+const capituloId = String(capituloActual + 1).padStart(2, "0"); // correcto
+
 const libroId = "01"; // Por ahora solo para Génesis
 
 datosInterlineales = {};
 json.forEach(item => {
   const id = item.id;
-  const libro = id.slice(0, 2);       // ej: "01"
-  const capitulo = id.slice(2, 4);    // ej: "01"
-  const versiculo = id.slice(4);      // ej: "0001" → versículo
-
-  if (libro === libroId && capitulo === capituloId) {
+  const libro = id.slice(0, 2);
+  const capitulo = id.slice(2, 4);
+  const versiculo = id.slice(4);
+  if (libro === "01" && capitulo === capituloId) {
     const versoNum = parseInt(versiculo, 10);
     datosInterlineales[versoNum] = item.verse;
   }
 });
+console.log("📚 Interlineal cargado:", datosInterlineales);
+
 
 
   mostrarVersiculo();
@@ -485,15 +487,11 @@ function mostrarVersiculo() {
     }
     renderizarVersiculo(verso, versiculoActual + 1);
   } else {
-    capitulo.forEach((texto, idx) => {
-const numeroVerso = idx + 1;
-const inter = datosInterlineales && datosInterlineales[numeroVerso];
-
-
-
-renderizarVersiculo(texto, numeroVerso, inter);
-console.log("🔍 Interlineal para verso", numeroVerso, inter);
-
+capitulo.forEach((texto, idx) => {
+  const numeroVerso = idx + 1;
+  const inter = datosInterlineales?.[numeroVerso];
+  console.log("🔍 Interlineal para verso", numeroVerso, inter);
+  renderizarVersiculo(texto, numeroVerso, inter);
 });
 
   }
