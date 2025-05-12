@@ -488,12 +488,15 @@ function mostrarVersiculo() {
     }
     renderizarVersiculo(verso, versiculoActual + 1);
   } else {
-capitulo.forEach((texto, idx) => {
-  const versoNum = idx + 1;
-  const idCompleto = `01${String(capituloActual + 1).padStart(2, "0")}${String(versoNum).padStart(2, "0")}`;
-  const inter = datosInterlineales?.[idCompleto] || null;
-  renderizarVersiculo(texto, versoNum, inter);
+capitulo.forEach((texto, index) => {
+  const versoNum = index + 1;
+  const capStr = String(capituloActual + 1).padStart(2, "0");
+  const versStr = String(versoNum).padStart(2, "0");
+  const idCompleto = `01${capStr}${versStr}`;
+  const interlineal = datosInterlineales?.[idCompleto] || null;
+  renderizarVersiculo(texto, versoNum, interlineal);
 });
+
 
 
 console.log("🧪 Verso #", idx + 1, "texto:", texto, "interlineal:", datosInterlineales?.[idx + 1]);
