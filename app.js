@@ -519,26 +519,34 @@ function mostrarVersiculo() {
       output.innerHTML = "<p>Versículo no encontrado.</p>";
       return;
     }
-    renderizarVersiculo(verso, versiculoActual + 1);
+
+    // 🔢 ID único de versículo si hay interlineal
+    const versoNum = versiculoActual + 1;
+    const capStr = String(capituloActual + 1).padStart(2, "0");
+    const versStr = String(versoNum).padStart(2, "0");
+    const libroStr = codigosLibros[libroActual]; // "01"
+    const idCompleto = `${libroStr}${capStr}${versStr}`; // "01001001"
+    const inter = datosInterlineales?.[idCompleto] || null;
+
+    console.log("📦 Renderizando versículo único:", versoNum);
+    console.log("🔎 Buscando ID:", idCompleto, "=>", inter);
+
+    renderizarVersiculo(verso, versoNum, inter);
   } else {
-capitulo.forEach((texto, index) => {
-  const versoNum = index + 1;
-  const capStr = String(capituloActual + 1).padStart(2, "0"); // Capítulo
-  const versStr = String(versoNum).padStart(2, "0");          // Versículo
-  const libroStr = codigosLibros[libroActual];                // "01"
+    capitulo.forEach((texto, index) => {
+      const versoNum = index + 1;
+      const capStr = String(capituloActual + 1).padStart(2, "0"); // "01"
+      const versStr = String(versoNum).padStart(2, "0");          // "01"
+      const libroStr = codigosLibros[libroActual];                // "01"
+      const idCompleto = `${libroStr}${capStr}${versStr}`;        // "01001001"
 
-  const idCompleto = `${libroStr}${capStr}${versStr}`; // ← ej: "01001001"
-  const interlineal = datosInterlineales?.[idCompleto] || null;
+      const interlineal = datosInterlineales?.[idCompleto] || null;
 
-  console.log("📦 Renderizando versículo", versoNum, "con interlineal:", interlineal);
-  renderizarVersiculo(texto, versoNum, interlineal);
-});
+      console.log("📦 Renderizando versículo", versoNum, "con ID:", idCompleto);
+      console.log("🔍 Resultado encontrado:", interlineal);
 
-
-
-
-
-
+      renderizarVersiculo(texto, versoNum, interlineal);
+    });
   }
 
   // 🔁 Cargar notas desde Drive si hay sesión y estamos en un capítulo válido
@@ -555,7 +563,6 @@ capitulo.forEach((texto, index) => {
       }
     });
   } else {
-    // Si no hay sesión, igual aplicamos notas locales si existen
     if (typeof aplicarNotasDesdeLocal === "function") {
       aplicarNotasDesdeLocal();
     }
