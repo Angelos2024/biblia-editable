@@ -351,35 +351,36 @@ function buscarVersiculo() {
             fetch(urlInter)
               .then(r => r.json())
               .then(json => {
-                const nombreAbreviado = abreviarLibro(libroActual); // Ej: "Génesis" → "Gen"
-const capituloReal = capituloActual + 1; // Porque comienza en 0
+                const nombreAbreviado = abreviarLibro(libroActual);
+                const capituloReal = capituloActual + 1;
 
-datosInterlineales = Object.fromEntries(
-  json
-    .filter(item => {
-      const id = item.id || "";
-      return id.startsWith(`${nombreAbreviado}_${capituloReal}_`);
-    })
-    .map(item => [item.id, item.verse])
-);
-console.log("🔎 Test directo acceso Gen_1_1:", datosInterlineales["Gen_1_1"]);
-console.log("🔑 Incluye Gen_1_1:", Object.keys(datosInterlineales).includes("Gen_1_1"));
+                datosInterlineales = Object.fromEntries(
+                  json
+                    .filter(item => {
+                      const id = item.id || "";
+                      return id.startsWith(`${nombreAbreviado}_${capituloReal}_`);
+                    })
+                    .map(item => [item.id, item.verse])
+                );
 
-console.log("🔍 Entradas recibidas del interlineal:", json.map(x => x.id));
+                console.log("🔍 Interlineal cargado con claves:", Object.keys(datosInterlineales));
+                console.log("📦 Test directo Gen_1_1:", datosInterlineales["Gen_1_1"]);
 
-                console.log(`📚 Interlineal cargado para ${libroActual} capítulo ${capituloEsperado}:`, Object.keys(datosInterlineales));
-                mostrarVersiculo();
+                mostrarVersiculo(); // ✅ Ahora sí: mostrar con interlineal cargado
               })
               .catch(() => {
+                console.warn("⚠️ No se pudo cargar interlineal.");
                 datosInterlineales = null;
-                mostrarVersiculo();
+                mostrarVersiculo(); // Mostrar sin interlineal
               });
+
           } else {
             datosInterlineales = null;
-            mostrarVersiculo();
+            mostrarVersiculo(); // Mostrar sin interlineal
           }
         });
       });
+
   } else {
     // Si no coincide con formato versículo, hacer búsqueda global
     buscarPalabraGlobal(entrada);
