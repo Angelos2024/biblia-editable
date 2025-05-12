@@ -346,7 +346,7 @@ function buscarVersiculo() {
             fetch(urlInter)
               .then(r => r.json())
               .then(json => {
-                const capituloEsperado = String(capituloActual).padStart(2, "0");
+                const capituloEsperado = String(capituloActual + 1).padStart(2, "0");
 
 datosInterlineales = Object.fromEntries(
   json
@@ -522,7 +522,9 @@ function mostrarVersiculo() {
 
     // 🔢 ID único de versículo si hay interlineal
     const versoNum = versiculoActual + 1;
-    const capStr = String(capituloActual).padStart(2, "0");            // ✅ capítulo indexado desde 0
+    const capituloReal = capituloActual + 1;
+const capStr = String(capituloReal).padStart(2, "0");
+          // ✅ capítulo indexado desde 0
     const versStr = String(1000 + versoNum).padStart(4, "0");          // ✅ versículo como "1001"
     const libroStr = codigosLibros[libroActual];                      // "01"
     const idCompleto = `${libroStr}${capStr}${versStr}`;              // "01001001"
@@ -537,7 +539,9 @@ function mostrarVersiculo() {
   } else {
     capitulo.forEach((texto, index) => {
       const versoNum = index + 1;
-      const capStr = String(capituloActual).padStart(2, "0");          // ✅ capítulo indexado desde 0
+    const capituloReal = capituloActual + 1;
+const capStr = String(capituloReal).padStart(2, "0");
+          // ✅ capítulo indexado desde 0
       const versStr = String(1000 + versoNum).padStart(4, "0");        // ✅ versículo como "1001"
       const libroStr = codigosLibros[libroActual];
       const idCompleto = `${libroStr}${capStr}${versStr}`;
