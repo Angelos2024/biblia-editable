@@ -523,7 +523,7 @@ function mostrarVersiculo() {
     // 🔢 ID único de versículo si hay interlineal
     const versoNum = versiculoActual + 1;
     const capStr = String(capituloActual + 1).padStart(2, "0");
- const versStr = String(versoNum).padStart(4, "0"); // ✅ esto da "0015"
+const versStr = String(versoNum).padStart(4, "0"); // ✅ Correcto // ✅ Correcto
     const libroStr = codigosLibros[libroActual]; // "01"
   const idCompleto = `${libroStr}${capStr}${versStr}`; // ✅ ej: 01000015
     const inter = datosInterlineales?.[idCompleto] || null;
@@ -533,12 +533,14 @@ function mostrarVersiculo() {
 
     renderizarVersiculo(verso, versoNum, inter);
   } else {
-    capitulo.forEach((texto, index) => {
-      const versoNum = index + 1;
-      const capStr = String(capituloActual + 1).padStart(2, "0"); // "01"
-const versStr = String(versoNum).padStart(4, "0");
-      const libroStr = codigosLibros[libroActual];                // "01"
-      const idCompleto = `${libroStr}${capStr}${versStr}`;        // "01001001"
+capitulo.forEach((texto, index) => {
+  const versoNum = index + 1;
+  const capStr = String(capituloActual + 1).padStart(2, "0");
+  const versStr = String(versoNum).padStart(4, "0"); // ✅ también aquí
+  const libroStr = codigosLibros[libroActual];
+  const idCompleto = `${libroStr}${capStr}${versStr}`;
+
+
 
       const interlineal = datosInterlineales?.[idCompleto] || null;
 
