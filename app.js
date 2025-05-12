@@ -1,3 +1,4 @@
+
 // app.js
 let datosInterlineales = null;
 
@@ -303,7 +304,19 @@ if (["Génesis"].includes(libroActual)) {
     .then(json => {
  
 
-  datosInterlineales = json;
+  // Filtrar solo el capítulo actual
+const capituloId = String(capituloActual + 1).padStart(2, "0");
+
+datosInterlineales = {};
+json.forEach(item => {
+  const id = item.id;
+  const cap = id.slice(2, 4); // por ejemplo: "01" para capítulo 1
+  const versoNum = parseInt(id.slice(4), 10); // "0001" → 1
+  if (cap === capituloId) {
+    datosInterlineales[versoNum] = item.verse;
+  }
+});
+
   mostrarVersiculo();
 })
     .catch(() => {
@@ -468,7 +481,8 @@ function mostrarVersiculo() {
     renderizarVersiculo(verso, versiculoActual + 1);
   } else {
     capitulo.forEach((texto, idx) => {
-  const inter = datosInterlineales?.[idx]?.verse;
+ const inter = datosInterlineales?.[idx + 1];
+
 
   renderizarVersiculo(texto, idx + 1, inter);
 });
