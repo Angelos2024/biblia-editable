@@ -374,8 +374,10 @@ if (libroCodigo) {
 
 
 console.log("📖 Mostrando", libroActual, "capítulo", capituloActual + 1);
-}); // <- cierre de la función flecha pasada a cargarDesdeDrive
-}
+    }); // ← cierre de callback de cargarDesdeDrive
+  }); // ← cierre del .then(data => { ... })
+} // ← cierre final de buscarVersiculo
+
 
 function normalizarTextoPlano(texto) {
   return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
