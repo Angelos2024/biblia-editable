@@ -154,11 +154,6 @@ console.log("Alias generados:", aliasLibros);
 
 
 
-let textoOriginal = [];
-let textoEditado = {};
-let libroActual = "";
-let capituloActual = 0;
-let versiculoActual = null;
 
 function poblarDropdowns() {
   const libroSelect = document.getElementById("libroSelect");
