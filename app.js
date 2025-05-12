@@ -491,7 +491,7 @@ function mostrarVersiculo() {
 capitulo.forEach((texto, index) => {
   const versoNum = index + 1;
   const capStr = String(capituloActual + 1).padStart(2, "0");
-  const versStr = String(versoNum).padStart(2, "0");
+const versStr = String(versoNum).padStart(4, "0");
   const idCompleto = `01${capStr}${versStr}`;
   const interlineal = datosInterlineales?.[idCompleto] || null;
   renderizarVersiculo(texto, versoNum, interlineal);
