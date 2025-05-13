@@ -665,25 +665,18 @@ function renderizarVersiculo(texto, numero, interlineal = null) {
 
   // 🧾 Interlineal encima (si hay)
   if (Array.isArray(interlineal)) {
-// Determinar si es hebreo (AT) o griego (NT)
-const codigo = codigosLibros[libroActual];
+    const interDiv = document.createElement("div");
+    interDiv.className = "interlineal";
 
-if (codigo && parseInt(codigo) <= 39) {
-  interDiv.setAttribute("style", "direction: rtl !important; text-align: right !important;");
-} else {
-  interDiv.setAttribute("style", "direction: ltr !important; text-align: left !important;");
-}
-
-      // Determinar si es hebreo (AT) o griego (NT) basado en codigosLibros
-  const codigo = codigosLibros[libroActual];
-  if (codigo && parseInt(codigo) <= 39) {
-    interDiv.style.direction = "rtl"; // Hebreo (AT)
-    interDiv.style.textAlign = "right";
-  } else {
-    interDiv.style.direction = "ltr"; // Griego (NT)
-    interDiv.style.textAlign = "left";
-  }
-
+    // ✅ Determinar si es hebreo (AT) o griego (NT)
+    const codigo = codigosLibros[libroActual];
+    if (codigo && parseInt(codigo) >= 40) {
+      // Nuevo Testamento → izquierda a derecha (LTR)
+      interDiv.setAttribute("style", "direction: ltr !important; text-align: left !important;");
+    } else {
+      // Antiguo Testamento → derecha a izquierda (RTL)
+      interDiv.setAttribute("style", "direction: rtl !important; text-align: right !important;");
+    }
 
     interlineal.forEach(palabra => {
       const span = document.createElement("span");
@@ -698,24 +691,23 @@ if (codigo && parseInt(codigo) <= 39) {
         span.appendChild(document.createElement("br"));
       }
 
-     const hebreo = document.createElement("div");
-hebreo.textContent = palabra.word;
-hebreo.dir = "rtl";
-hebreo.style.fontWeight = "bold";
+      const hebreo = document.createElement("div");
+      hebreo.textContent = palabra.word;
+      hebreo.dir = "rtl";
+      hebreo.style.fontWeight = "bold";
 
-const traduccion = document.createElement("div");
-traduccion.innerHTML = `<small>${palabra.text}</small>`;
+      const traduccion = document.createElement("div");
+      traduccion.innerHTML = `<small>${palabra.text}</small>`;
 
-span.appendChild(hebreo);
-span.appendChild(traduccion);
-
+      span.appendChild(hebreo);
+      span.appendChild(traduccion);
       interDiv.appendChild(span);
     });
 
     versoBox.appendChild(interDiv);
   }
-  console.log("📦 Renderizando versículo", numero, "con interlineal:", interlineal);
 
+  console.log("📦 Renderizando versículo", numero, "con interlineal:", interlineal);
 
   // 📖 Texto del versículo editable
   const p = document.createElement("p");
@@ -726,24 +718,6 @@ span.appendChild(traduccion);
 
   versoBox.appendChild(p);
   contenedor.appendChild(versoBox);
-}
-
-
-function editarPalabra(span) {
-  if (span.contentEditable === "true") return;
-  span.contentEditable = "true";
-  span.classList.add("editing");
-  span.focus();
-
-  span.addEventListener("blur", () => {
-    span.contentEditable = "false";
-    span.classList.remove("editing");
-    mostrarBarraGuardar();
-  }, { once: true });
-}
-
-function mostrarBarraGuardar() {
-  document.getElementById("saveCancelBar").style.display = "flex";
 }
 
 function guardarCambios() {
