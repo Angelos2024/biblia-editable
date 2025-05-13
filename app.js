@@ -229,6 +229,36 @@ const codigosLibros = {
   "Malaquías": "39"
 };
 
+Object.assign(codigosLibros, {
+  "Mateo": "40",
+  "Marcos": "41",
+  "Lucas": "42",
+  "Juan": "43",
+  "Hechos": "44",
+  "Romanos": "45",
+  "1Corintios": "46",
+  "2Corintios": "47",
+  "Gálatas": "48",
+  "Efesios": "49",
+  "Filipenses": "50",
+  "Colosenses": "51",
+  "1Tesalonicenses": "52",
+  "2Tesalonicenses": "53",
+  "1Timoteo": "54",
+  "2Timoteo": "55",
+  "Tito": "56",
+  "Filemon": "57",
+  "Hebreos": "58",
+  "Santiago": "59",
+  "1Pedro": "60",
+  "2Pedro": "61",
+  "1Juan": "62",
+  "2Juan": "63",
+  "3Juan": "64",
+  "Judas": "65",
+  "Apocalipsis": "66"
+});
+
 // (Resto del archivo continúa igual sin modificaciones...)
 
 
