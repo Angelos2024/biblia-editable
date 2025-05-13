@@ -101,7 +101,7 @@ function abreviarLibro(libro) {
     "2timoteo": "2Ti",
     "1pedro": "1Pe",
     "2pedro": "2Pe",
-    "1juan": "1Jn",
+    "1juan": "1_Jn",
     "2juan": "2Jn",
     "3juan": "3Jn",
     "hechos": "Hch",
