@@ -102,7 +102,7 @@ function abreviarLibro(libro) {
     "1pedro": "1Pe",
     "2pedro": "2Pe",
     "1juan": "1_Jn",
-    "2juan": "2Jn",
+    "2juan": "2_Jn",
     "3juan": "3_Jn",
     "hechos": "Hch",
     "santiago": "Stg",
