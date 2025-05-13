@@ -132,16 +132,16 @@ function abreviarLibro(libro) {
 
 const aliasLibros = {};
 librosOrdenados.forEach(libro => {
-  const normalizado = libro.toLowerCase().replace(/\d/g, "").replace(/\s+/g, "");
-  const abreviado = libro.replace(/[^\w]/g, "").toLowerCase();
+  const normalizado = normalizarTexto(libro);
+  const abreviado = normalizarTexto(libro.replace(/[^\w]/g, ""));
 
-  if (!aliasLibros[libro.toLowerCase()]) aliasLibros[libro.toLowerCase()] = libro;
-  if (!aliasLibros[normalizado]) aliasLibros[normalizado] = libro;
-  if (!aliasLibros[abreviado]) aliasLibros[abreviado] = libro;
+  aliasLibros[normalizado] = libro;
+  aliasLibros[abreviado] = libro;
 
   const corta = abreviado.slice(0, 3);
-  if (!aliasLibros[corta]) aliasLibros[corta] = libro;
+  aliasLibros[corta] = libro;
 });
+
 
 // Aliases personalizados seguros
 Object.assign(aliasLibros, {
