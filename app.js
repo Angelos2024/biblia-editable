@@ -116,7 +116,7 @@ function abreviarLibro(libro) {
     "romanos": "Rom",
     "galatas": "Gal",
     "efesios": "Efe",
-    "filipenses": "Flp",
+    "filipenses": "filipenses",
     "colosenses": "Col",
     "hebreos": "Heb",
     "tito": "Tit"
