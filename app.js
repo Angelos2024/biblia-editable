@@ -108,7 +108,7 @@ function abreviarLibro(libro) {
     "santiago": "Stg",
     "filemon": "Flm",
     "judas": "Jud",
-    "apocalipsis": "Ap",
+    "apocalipsis": "Apo",
     "mateo": "Mat",
     "marcos": "Mar",
     "lucas": "Luc",
