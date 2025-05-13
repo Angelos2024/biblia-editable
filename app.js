@@ -665,8 +665,25 @@ function renderizarVersiculo(texto, numero, interlineal = null) {
 
   // 🧾 Interlineal encima (si hay)
   if (Array.isArray(interlineal)) {
-    const interDiv = document.createElement("div");
-    interDiv.className = "interlineal";
+// Determinar si es hebreo (AT) o griego (NT)
+const codigo = codigosLibros[libroActual];
+
+if (codigo && parseInt(codigo) <= 39) {
+  interDiv.setAttribute("style", "direction: rtl !important; text-align: right !important;");
+} else {
+  interDiv.setAttribute("style", "direction: ltr !important; text-align: left !important;");
+}
+
+      // Determinar si es hebreo (AT) o griego (NT) basado en codigosLibros
+  const codigo = codigosLibros[libroActual];
+  if (codigo && parseInt(codigo) <= 39) {
+    interDiv.style.direction = "rtl"; // Hebreo (AT)
+    interDiv.style.textAlign = "right";
+  } else {
+    interDiv.style.direction = "ltr"; // Griego (NT)
+    interDiv.style.textAlign = "left";
+  }
+
 
     interlineal.forEach(palabra => {
       const span = document.createElement("span");
