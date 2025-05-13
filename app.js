@@ -826,6 +826,36 @@ function irACapitulo(libro, cap) {
   document.getElementById("searchInput").value = `${libro} ${cap}`;
   buscarVersiculo();
 }
+function editarPalabra(span) {
+  const palabraOriginal = span.innerText;
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = palabraOriginal;
+  input.className = "form-control form-control-sm";
+  input.style.display = "inline-block";
+  input.style.width = (palabraOriginal.length + 2) + "ch";
+  input.style.margin = "0 2px";
+  input.style.padding = "0 2px";
+
+  span.replaceWith(input);
+  input.focus();
+
+  input.addEventListener("blur", () => {
+    const nuevoTexto = input.value.trim();
+    const nuevoSpan = document.createElement("span");
+    nuevoSpan.className = "verse-word";
+    nuevoSpan.innerText = nuevoTexto;
+    nuevoSpan.onclick = function () { editarPalabra(nuevoSpan); };
+
+    input.replaceWith(nuevoSpan);
+
+    document.getElementById("saveCancelBar").style.display = "flex";
+  });
+
+  input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") input.blur();
+  });
+}
 
 
 function restaurarVersiculo() {
